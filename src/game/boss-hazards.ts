@@ -37,6 +37,8 @@ export class BossHazards {
   private vz = new Float32Array(PROJ_CAP);
   private life = new Float32Array(PROJ_CAP);
   private active = new Uint8Array(PROJ_CAP);
+  /** 每發彈幕的傷害 */
+  private projDmg = new Float32Array(PROJ_CAP);
   private projMesh: Mesh[] = [];
 
   private shocks: Shock[] = [];
@@ -83,7 +85,7 @@ export class BossHazards {
     this.poisonMat.backFaceCulling = false;
   }
 
-  private spawnProj(x: number, z: number, dirX: number, dirZ: number, speed: number) {
+  private spawnProj(x: number, z: number, dirX: number, dirZ: number, speed: number, damage: number) {
     for (let i = 0; i < PROJ_CAP; i++) {
       if (this.active[i]) continue;
       this.active[i] = 1;
@@ -92,6 +94,7 @@ export class BossHazards {
       this.vx[i] = dirX * speed;
       this.vz[i] = dirZ * speed;
       this.life[i] = PROJ_LIFE;
+      this.projDmg[i] = damage;
       this.projMesh[i].position.set(x, this.baseY + PROJ_Y, z);
       this.projMesh[i].setEnabled(true);
       return;
@@ -103,7 +106,7 @@ export class BossHazards {
     const base = Math.atan2(targetZ - z, targetX - x);
     for (let k = 0; k < count; k++) {
       const a = base + (k - (count - 1) / 2) * 0.18;
-      this.spawnProj(x, z, Math.cos(a), Math.sin(a), 20);
+      this.spawnProj(x, z, Math.cos(a), Math.sin(a), 20, this.projDamage);
     }
   }
 
@@ -111,8 +114,14 @@ export class BossHazards {
   radialBarrage(x: number, z: number, count: number) {
     for (let k = 0; k < count; k++) {
       const a = (k / count) * Math.PI * 2;
-      this.spawnProj(x, z, Math.cos(a), Math.sin(a), 16);
+      this.spawnProj(x, z, Math.cos(a), Math.sin(a), 16, this.projDamage);
     }
+  }
+
+  /** 敵人遠程單發攻擊（自訂傷害；無頭骷髏用） */
+  enemyShot(x: number, z: number, targetX: number, targetZ: number, damage: number) {
+    const a = Math.atan2(targetZ - z, targetX - x);
+    this.spawnProj(x, z, Math.cos(a), Math.sin(a), 16, damage);
   }
 
   /** 落地震波擴散環（斷臂巨怪） */
@@ -150,7 +159,7 @@ export class BossHazards {
       const dx = this.px[i] - playerX;
       const dz = this.pz[i] - playerZ;
       if (dx * dx + dz * dz <= hitR2) {
-        damage += this.projDamage;
+        damage += this.projDmg[i];
         this.active[i] = 0;
         this.projMesh[i].setEnabled(false);
         continue;

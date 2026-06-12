@@ -3,6 +3,7 @@ import '@babylonjs/loaders';
 import { CONFIG } from './config';
 import { SpatialGrid } from './spatial-grid';
 import { Obstacle, resolveObstacles } from './obstacles';
+import { BossHazards } from './boss-hazards';
 
 interface ZombieType {
   path: string;
@@ -10,13 +11,22 @@ interface ZombieType {
   speed: number;
   /** 相對基準身高的縮放 */
   scale: number;
+  /** 遠程射手：保持距離並朝玩家發射彈丸 */
+  ranged?: boolean;
 }
+
+/** 遠程怪：發射間隔、開火距離、保持距離、彈丸傷害 */
+const FIRE_INTERVAL = 2.2;
+const FIRE_RANGE = 26;
+const KEEP_DIST = 13;
 
 const ZOMBIE_TYPES: ZombieType[] = [
   { path: '/models/zombie/zombie_basic.gltf', hp: 3, speed: 5.5, scale: 1 },
   { path: '/models/zombie/zombie_ribcage.gltf', hp: 2, speed: 8, scale: 0.95 }, // 快速
   { path: '/models/zombie/zombie_chubby.gltf', hp: 12, speed: 3.2, scale: 1.35 }, // 坦克
   { path: '/models/zombie/zombie_arm.gltf', hp: 4, speed: 5, scale: 1 },
+  { path: '/models/zombie/zombie_skeleton.gltf', hp: 4, speed: 6, scale: 1 }, // 不死骷髏
+  { path: '/models/zombie/zombie_skeleton_headless.gltf', hp: 6, speed: 5, scale: 1, ranged: true }, // 無頭骷髏（遠程）
 ];
 
 /** 怪物圖鑑資訊（供選單顯示） */
@@ -25,11 +35,13 @@ export const ZOMBIE_INFO = [
   { name: '肋骨怪', role: '快速', desc: '移動速度極快、血量低，會迅速貼近，優先處理。', model: '/models/zombie/zombie_ribcage.gltf' },
   { name: '胖殭屍', role: '坦克', desc: '血量厚、移動慢的肉盾，需要較多火力才打得倒。', model: '/models/zombie/zombie_chubby.gltf' },
   { name: '斷臂殭屍', role: '一般', desc: '中規中矩的近戰殭屍，速度與血量都中等。', model: '/models/zombie/zombie_arm.gltf' },
+  { name: '骷髏兵', role: '不死', desc: '海盜骷髏，移動偏快、血量普通，成群出現。', model: '/models/zombie/zombie_skeleton.gltf' },
+  { name: '無頭骷髏', role: '遠程', desc: '保持距離朝你發射彈丸的不死射手，會被逼近時後退。', model: '/models/zombie/zombie_skeleton_headless.gltf' },
 ];
 
 const BASE_HEIGHT = 2.4;
-/** 每種類型預先 instantiate 的數量（總和為怪海上限） */
-const PER_TYPE = 13;
+/** 每種類型預先 instantiate 的數量（總和為怪海上限；6 類型 × 9 = 54 ≥ director.maxCount） */
+const PER_TYPE = 9;
 /** 怪物血量全域倍率 */
 const HP_SCALE = 0.75;
 /** 受擊白光持續時間（秒） */
@@ -62,7 +74,14 @@ export class ZombieHorde {
   private hp: Float32Array;
   /** 受擊回饋計時（>0 時縮放彈跳） */
   private hitFlash: Float32Array;
+  /** 冰凍剩餘時間（>0 時不動） */
+  private freezeTimer: Float32Array;
+  /** 遠程開火計時 */
+  private fireTimer: Float32Array;
   private capacity = ZOMBIE_TYPES.length * PER_TYPE;
+  /** 遠程怪彈丸傷害（依難度調整） */
+  rangedDamage = 7;
+  private hazards?: BossHazards;
   /** 地形高度查詢（貼地用） */
   private heightAt: (x: number, z: number) => number = () => 0;
 
@@ -72,6 +91,8 @@ export class ZombieHorde {
     this.posZ = new Float32Array(this.capacity);
     this.hp = new Float32Array(this.capacity);
     this.hitFlash = new Float32Array(this.capacity);
+    this.freezeTimer = new Float32Array(this.capacity);
+    this.fireTimer = new Float32Array(this.capacity);
     void this.init();
   }
 
@@ -122,6 +143,11 @@ export class ZombieHorde {
     this.heightAt = fn;
   }
 
+  /** 提供遠程怪發射彈丸用的危險物系統 */
+  setHazards(hazards: BossHazards) {
+    this.hazards = hazards;
+  }
+
   private normalize(root: TransformNode, targetHeight: number) {
     const { min, max } = root.getHierarchyBoundingVectors();
     const h = max.y - min.y || 1;
@@ -142,6 +168,8 @@ export class ZombieHorde {
     /** 依 index 對應的類型血量（pool 交錯排列） */
     this.hp[i] = ZOMBIE_TYPES[i % ZOMBIE_TYPES.length].hp * HP_SCALE * this.hpMul;
     this.hitFlash[i] = 0;
+    this.freezeTimer[i] = 0;
+    this.fireTimer[i] = Math.random() * FIRE_INTERVAL;
     for (const m of entry.meshes) m.renderOverlay = false;
     entry.root.position.x = this.posX[i];
     entry.root.position.z = this.posZ[i];
@@ -190,6 +218,11 @@ export class ZombieHorde {
     return i < this.count;
   }
 
+  /** 冰凍指定殭屍一段時間 */
+  freeze(i: number, dur: number) {
+    if (i < this.count) this.freezeTimer[i] = Math.max(this.freezeTimer[i], dur);
+  }
+
   damage(i: number, amount: number, playerX: number, playerZ: number): boolean {
     if (i >= this.count) return false;
     this.hp[i] -= amount;
@@ -202,12 +235,21 @@ export class ZombieHorde {
     return false;
   }
 
-  update(dt: number, playerX: number, playerZ: number, grid: SpatialGrid, obstacles: Obstacle[]) {
+  update(
+    dt: number,
+    playerX: number,
+    playerZ: number,
+    grid: SpatialGrid,
+    obstacles: Obstacle[],
+    slowRadius = 0,
+    slowFactor = 1,
+  ) {
     if (!this.ready) return;
     const { separationRadius, separationForce, radius } = CONFIG.enemy;
     const sepR2 = separationRadius * separationRadius;
     const half = CONFIG.arenaHalf;
     const scratch = { x: 0, z: 0 };
+    const slowR2 = slowRadius * slowRadius;
 
     for (let i = 0; i < this.count; i++) {
       const x = this.posX[i];
@@ -234,7 +276,32 @@ export class ZombieHorde {
         }
       });
 
-      const spd = this.pool[i].baseSpeed * this.speedMul;
+      let spd = this.pool[i].baseSpeed * this.speedMul;
+      /** 冰凍：完全不動；減速光環：範圍內降速 */
+      if (this.freezeTimer[i] > 0) {
+        this.freezeTimer[i] -= dt;
+        spd = 0;
+      } else if (slowR2 > 0) {
+        const ddx = playerX - x;
+        const ddz = playerZ - z;
+        if (ddx * ddx + ddz * ddz < slowR2) spd *= slowFactor;
+      }
+
+      /** 遠程射手：保持距離並開火（dlen 為與玩家距離） */
+      if (ZOMBIE_TYPES[i % ZOMBIE_TYPES.length].ranged && this.freezeTimer[i] <= 0) {
+        if (dlen < KEEP_DIST) {
+          dirX = -dirX; // 太近則後退
+          dirZ = -dirZ;
+        } else if (dlen <= FIRE_RANGE) {
+          spd = 0; // 在射程內站定射擊
+        }
+        this.fireTimer[i] -= dt;
+        if (dlen <= FIRE_RANGE && this.fireTimer[i] <= 0 && this.hazards) {
+          this.hazards.enemyShot(x, z, playerX, playerZ, this.rangedDamage);
+          this.fireTimer[i] = FIRE_INTERVAL;
+        }
+      }
+
       let nx = x + (dirX * spd + sepX * separationForce) * dt;
       let nz = z + (dirZ * spd + sepZ * separationForce) * dt;
       if (nx > half) nx = half;

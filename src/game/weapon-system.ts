@@ -22,6 +22,8 @@ import { hitSpark } from './effects';
 const SPREAD_STEP = 0.16;
 /** 飛刀自轉速度（弧度/秒） */
 const KNIFE_SPIN = 20;
+/** 冰凍持續時間（秒） */
+const FREEZE_DUR = 1.2;
 
 /** 自動武器：定時朝最近敵人發射投射物（數量／傷害／射程等讀取 RunState，隨升級變動）。 */
 export class WeaponSystem {
@@ -34,6 +36,8 @@ export class WeaponSystem {
   private life: Float32Array;
   private active: Uint8Array;
   private spin: Float32Array;
+  /** 每發剩餘穿透數 */
+  private pierce: Float32Array;
   private cap: number;
 
   private matrixBuffer: Float32Array;
@@ -58,6 +62,7 @@ export class WeaponSystem {
     this.life = new Float32Array(this.cap);
     this.active = new Uint8Array(this.cap);
     this.spin = new Float32Array(this.cap);
+    this.pierce = new Float32Array(this.cap);
     this.matrixBuffer = new Float32Array(this.cap * 16);
 
     /** 子彈 fallback：發光黃色小球（飛刀模型載入後替換） */
@@ -120,7 +125,7 @@ export class WeaponSystem {
     this.mat.copyToArray(this.matrixBuffer, i * 16);
   }
 
-  private spawnProjectile(x: number, z: number, dirX: number, dirZ: number, speed: number) {
+  private spawnProjectile(x: number, z: number, dirX: number, dirZ: number, speed: number, pierce: number) {
     for (let i = 0; i < this.cap; i++) {
       if (this.active[i]) continue;
       this.active[i] = 1;
@@ -130,6 +135,7 @@ export class WeaponSystem {
       this.vz[i] = dirZ * speed;
       this.life[i] = CONFIG.weapon.lifetime;
       this.spin[i] = Math.atan2(dirX, dirZ);
+      this.pierce[i] = pierce;
       return;
     }
   }
@@ -154,7 +160,7 @@ export class WeaponSystem {
     const count = run.projectileCount;
     for (let k = 0; k < count; k++) {
       const angle = baseAngle + (k - (count - 1) / 2) * SPREAD_STEP;
-      this.spawnProjectile(playerX, playerZ, Math.cos(angle), Math.sin(angle), run.projectileSpeed);
+      this.spawnProjectile(playerX, playerZ, Math.cos(angle), Math.sin(angle), run.projectileSpeed, run.pierce);
     }
   }
 
@@ -203,18 +209,31 @@ export class WeaponSystem {
       });
 
       if (hitEnemy >= 0) {
+        const hx = this.px[i];
+        const hz = this.pz[i];
         const ex = enemies.getX(hitEnemy);
         const ez = enemies.getZ(hitEnemy);
-        /** 傷害火花 */
-        hitSpark(this.scene, new Vector3(this.px[i], this.y, this.pz[i]));
-        if (enemies.damage(hitEnemy, run.damage, playerX, playerZ)) {
+        hitSpark(this.scene, new Vector3(hx, this.y, hz));
+        /** 暴擊 */
+        const dmg = run.critChance > 0 && Math.random() < run.critChance ? run.damage * run.critMult : run.damage;
+        if (enemies.damage(hitEnemy, dmg, playerX, playerZ)) {
           kills++;
           onKill(ex, ez);
         }
-        this.active[i] = 0;
-      } else if (boss.hitTest(this.px[i], this.pz[i], CONFIG.weapon.projectileRadius, run.damage)) {
-        /** 命中王（火花由 boss.hitTest 自行產生） */
-        this.active[i] = 0;
+        /** 冰凍 */
+        if (run.freezeChance > 0 && Math.random() < run.freezeChance) enemies.freeze(hitEnemy, FREEZE_DUR);
+        /** 爆裂彈 */
+        if (run.explodeRadius > 0) kills += this.explode(hx, hz, enemies, boss, run, playerX, playerZ, onKill);
+        /** 穿透：還有穿透數則繼續飛 */
+        if (this.pierce[i] > 0) this.pierce[i]--;
+        else this.active[i] = 0;
+      } else {
+        const bdmg = run.critChance > 0 && Math.random() < run.critChance ? run.damage * run.critMult : run.damage;
+        if (boss.hitTest(this.px[i], this.pz[i], CONFIG.weapon.projectileRadius, bdmg)) {
+          if (run.explodeRadius > 0) kills += this.explode(this.px[i], this.pz[i], enemies, boss, run, playerX, playerZ, onKill);
+          if (this.pierce[i] > 0) this.pierce[i]--;
+          else this.active[i] = 0;
+        }
       }
 
       this.writeMatrix(i);
@@ -222,6 +241,37 @@ export class WeaponSystem {
 
     this.mesh.thinInstanceBufferUpdated('matrix');
     return kills;
+  }
+
+  /** 爆裂彈：對命中點周圍範圍造成傷害，回傳擊殺數 */
+  private explode(
+    x: number,
+    z: number,
+    enemies: ZombieHorde,
+    boss: Boss,
+    run: RunState,
+    playerX: number,
+    playerZ: number,
+    onKill: (x: number, z: number) => void,
+  ): number {
+    let k = 0;
+    const r2 = run.explodeRadius * run.explodeRadius;
+    for (let j = 0; j < enemies.count; j++) {
+      if (!enemies.isAlive(j)) continue;
+      const dx = enemies.getX(j) - x;
+      const dz = enemies.getZ(j) - z;
+      if (dx * dx + dz * dz <= r2) {
+        const ex = enemies.getX(j);
+        const ez = enemies.getZ(j);
+        if (enemies.damage(j, run.explodeDamage, playerX, playerZ)) {
+          k++;
+          onKill(ex, ez);
+        }
+      }
+    }
+    boss.hitTest(x, z, run.explodeRadius, run.explodeDamage);
+    hitSpark(this.scene, new Vector3(x, this.y, z));
+    return k;
   }
 
   reset() {

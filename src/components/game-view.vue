@@ -58,6 +58,17 @@
       v-if="showDebug && stats.state === 'running'"
       class="absolute right-4 top-20 z-20 max-h-[78vh] w-72 overflow-y-auto rounded-2xl bg-black/75 p-3 text-xs text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-md"
     >
+      <!-- 召喚王 -->
+      <div class="mb-3 rounded-lg bg-white/5 p-2">
+        <div class="mb-1 text-sm font-black text-fuchsia-300">召喚王</div>
+        <div class="flex gap-2">
+          <select v-model.number="summonIndex" class="min-w-0 flex-1 rounded bg-black/50 px-2 py-1 text-white outline-none">
+            <option v-for="(n, i) in bossNames" :key="i" :value="i" class="text-black">{{ i + 1 }}. {{ n }}</option>
+          </select>
+          <button class="rounded bg-fuchsia-500 px-3 py-1 font-black active:scale-95" @click="onSummonBoss">召喚</button>
+        </div>
+      </div>
+
       <template v-for="g in debugGroups" :key="g.group">
         <div class="mb-1 mt-2 text-sm font-black text-fuchsia-300">{{ g.group }}</div>
         <div v-for="item in g.items" :key="item.index" class="mb-2">
@@ -146,6 +157,7 @@ import {
   type UpgradeStatusView,
 } from '../game/game';
 import type { RunState } from '../game/upgrades';
+import type { Difficulty } from '../game/difficulty';
 import Hud from './hud.vue';
 import Joystick from './joystick.vue';
 import LevelUpModal from './level-up-modal.vue';
@@ -158,6 +170,7 @@ const props = defineProps<{
   characterModel?: string;
   startRunState?: RunState;
   goldMultiplier: number;
+  difficulty?: Difficulty;
 }>();
 const emit = defineEmits<{
   (e: 'gameover', result: RunResult): void;
@@ -198,6 +211,8 @@ const upgradeStatus = ref<UpgradeStatusView[]>([]);
 
 const showDebug = ref(false);
 const debugParams = ref<DebugParamView[]>([]);
+const bossNames = ref<string[]>([]);
+const summonIndex = ref(0);
 const debugGroups = computed(() => {
   const map = new Map<string, (DebugParamView & { index: number })[]>();
   debugParams.value.forEach((p, i) => {
@@ -214,6 +229,7 @@ onMounted(() => {
     characterColor: props.characterColor,
     characterModel: props.characterModel,
     goldMultiplier: props.goldMultiplier,
+    difficulty: props.difficulty,
     onStats: (s) => {
       Object.assign(stats, s);
       if (showStats.value && game) upgradeStatus.value = game.getUpgradeStatus();
@@ -263,7 +279,13 @@ function onToggleDebug() {
     }
   }
   showDebug.value = !showDebug.value;
-  if (showDebug.value && game) debugParams.value = game.getDebugParams();
+  if (showDebug.value && game) {
+    debugParams.value = game.getDebugParams();
+    bossNames.value = game.getBossNames();
+  }
+}
+function onSummonBoss() {
+  game?.summonBoss(summonIndex.value);
 }
 function onDebugInput(index: number, e: Event) {
   const v = Number((e.target as HTMLInputElement).value);

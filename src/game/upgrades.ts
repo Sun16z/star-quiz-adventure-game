@@ -5,6 +5,8 @@ export interface RunState {
   // 玩家
   moveSpeed: number;
   maxHp: number;
+  /** 跳躍初速（越高跳越高、滯空越久） */
+  jumpStrength: number;
   /** 經驗吸取範圍 */
   pickupRadius: number;
   xpMultiplier: number;
@@ -31,12 +33,29 @@ export interface RunState {
   // 回力鏢
   boomerangCount: number;
   boomerangDamage: number;
+  // 群控
+  enemySpeedMul: number; // 時緩：全場怪速倍率
+  slowRadius: number; // 減速光環半徑（0=關）
+  slowFactor: number; // 範圍內怪速倍率
+  freezeChance: number; // 命中冰凍機率
+  // 防禦／續航
+  lifestealOnKill: number; // 擊殺回血
+  hpRegen: number; // 每秒回血
+  damageReduction: number; // 受傷減免（0~0.8）
+  shieldInterval: number; // 護盾再生間隔秒（0=關）
+  // 進攻修飾
+  critChance: number;
+  critMult: number;
+  pierce: number; // 子彈穿透數
+  explodeRadius: number; // 爆裂半徑（0=關）
+  explodeDamage: number;
 }
 
 export function createRunState(): RunState {
   return {
     moveSpeed: CONFIG.player.speed,
     maxHp: CONFIG.player.maxHp,
+    jumpStrength: CONFIG.player.jump.strength,
     pickupRadius: 5,
     xpMultiplier: 1,
     damage: CONFIG.weapon.damage,
@@ -56,6 +75,19 @@ export function createRunState(): RunState {
     novaDamage: 4,
     boomerangCount: 0,
     boomerangDamage: 4,
+    enemySpeedMul: 1,
+    slowRadius: 0,
+    slowFactor: 0.5,
+    freezeChance: 0,
+    lifestealOnKill: 0,
+    hpRegen: 0,
+    damageReduction: 0,
+    shieldInterval: 0,
+    critChance: 0,
+    critMult: 2,
+    pierce: 0,
+    explodeRadius: 0,
+    explodeDamage: 3,
   };
 }
 
@@ -75,6 +107,14 @@ export const UPGRADES: Upgrade[] = [
   { id: 'range', name: '射程', desc: '鎖定範圍 +20%', emoji: '🔭', maxLevel: 5, apply: (s) => (s.range *= 1.2) },
   { id: 'projspeed', name: '彈速', desc: '投射物速度 +20%', emoji: '💨', maxLevel: 5, apply: (s) => (s.projectileSpeed *= 1.2) },
   { id: 'movespeed', name: '移動速度', desc: '移速 +10%', emoji: '👟', maxLevel: 5, apply: (s) => (s.moveSpeed *= 1.1) },
+  {
+    id: 'jump',
+    name: '跳躍強化',
+    desc: '跳得更高、滯空更久（騰空可閃避接觸傷害）',
+    emoji: '🦘',
+    maxLevel: 4,
+    apply: (s) => (s.jumpStrength += 2),
+  },
   { id: 'maxhp', name: '最大生命', desc: '生命上限 +20 並補滿', emoji: '❤️', maxLevel: 5, apply: (s) => (s.maxHp += 20) },
   { id: 'magnet', name: '拾取範圍', desc: '經驗吸取範圍 +30%', emoji: '🧲', maxLevel: 5, apply: (s) => (s.pickupRadius *= 1.3) },
   { id: 'xpgain', name: '經驗加成', desc: '經驗獲得 +15%', emoji: '⭐', maxLevel: 5, apply: (s) => (s.xpMultiplier *= 1.15) },
@@ -132,6 +172,95 @@ export const UPGRADES: Upgrade[] = [
     apply: (s) => {
       s.boomerangCount += 1;
       s.boomerangDamage += 1;
+    },
+  },
+  // ===== 群控 =====
+  {
+    id: 'slowfield',
+    name: '減速光環',
+    desc: '身邊一圈的殭屍移動變慢；已有則擴大範圍',
+    emoji: '❄️',
+    maxLevel: 5,
+    apply: (s) => {
+      s.slowRadius = s.slowRadius === 0 ? 7 : s.slowRadius + 1.5;
+      s.slowFactor = Math.max(0.3, s.slowFactor - 0.05);
+    },
+  },
+  {
+    id: 'timeslow',
+    name: '時緩',
+    desc: '全場殭屍永久減速 8%',
+    emoji: '🐌',
+    maxLevel: 5,
+    apply: (s) => (s.enemySpeedMul *= 0.92),
+  },
+  {
+    id: 'freeze',
+    name: '冰凍彈',
+    desc: '子彈命中有機率短暫冰凍殭屍；已有則機率提升',
+    emoji: '🧊',
+    maxLevel: 5,
+    apply: (s) => (s.freezeChance = Math.min(0.5, s.freezeChance + 0.08)),
+  },
+  // ===== 防禦／續航 =====
+  {
+    id: 'lifesteal',
+    name: '吸血',
+    desc: '每擊殺一隻殭屍回復生命；已有則回更多',
+    emoji: '🩸',
+    maxLevel: 5,
+    apply: (s) => (s.lifestealOnKill += 1),
+  },
+  {
+    id: 'regen',
+    name: '生命再生',
+    desc: '每秒回復生命；已有則回更多',
+    emoji: '❤️‍🩹',
+    maxLevel: 5,
+    apply: (s) => (s.hpRegen += 1.5),
+  },
+  {
+    id: 'armor',
+    name: '護甲',
+    desc: '受到的傷害減免 10%（最多 70%）',
+    emoji: '🛡️',
+    maxLevel: 5,
+    apply: (s) => (s.damageReduction = Math.min(0.7, s.damageReduction + 0.1)),
+  },
+  {
+    id: 'shield',
+    name: '能量護盾',
+    desc: '定期生成可擋一次傷害的護盾；已有則生成更快',
+    emoji: '🔆',
+    maxLevel: 5,
+    apply: (s) => (s.shieldInterval = s.shieldInterval === 0 ? 12 : Math.max(4, s.shieldInterval - 2)),
+  },
+  // ===== 進攻修飾 =====
+  {
+    id: 'crit',
+    name: '暴擊',
+    desc: '子彈有機率造成 2 倍傷害；已有則機率提升',
+    emoji: '💥',
+    maxLevel: 5,
+    apply: (s) => (s.critChance = Math.min(0.6, s.critChance + 0.1)),
+  },
+  {
+    id: 'pierce',
+    name: '穿透',
+    desc: '子彈可貫穿 +1 隻殭屍不消失',
+    emoji: '🎯',
+    maxLevel: 4,
+    apply: (s) => (s.pierce += 1),
+  },
+  {
+    id: 'explode',
+    name: '爆裂彈',
+    desc: '子彈命中產生範圍爆炸；已有則擴大並增傷',
+    emoji: '🧨',
+    maxLevel: 5,
+    apply: (s) => {
+      s.explodeRadius = s.explodeRadius === 0 ? 3 : s.explodeRadius + 0.8;
+      s.explodeDamage += 2;
     },
   },
 ];

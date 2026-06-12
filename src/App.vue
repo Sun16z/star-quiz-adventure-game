@@ -1,10 +1,11 @@
 <template>
   <landing-screen
     v-if="screen === 'landing'"
-    @start="screen = 'menu'"
+    @start="screen = 'difficulty'"
     @leaderboard="screen = 'leaderboard'"
     @bestiary="screen = 'bestiary'"
   />
+  <difficulty-screen v-else-if="screen === 'difficulty'" @select="onSelectDifficulty" @back="screen = 'landing'" />
   <leaderboard-screen v-else-if="screen === 'leaderboard'" @back="screen = 'landing'" />
   <bestiary-screen v-else-if="screen === 'bestiary'" @back="screen = 'landing'" />
   <menu-screen
@@ -22,6 +23,7 @@
     :character-model="characterModel"
     :start-run-state="startRun"
     :gold-multiplier="goldMul"
+    :difficulty="difficulty"
     @gameover="onGameOver"
     @menu="screen = 'landing'"
   />
@@ -34,15 +36,17 @@ import GameView from './components/game-view.vue';
 import LandingScreen from './components/landing-screen.vue';
 import LeaderboardScreen from './components/leaderboard-screen.vue';
 import BestiaryScreen from './components/bestiary-screen.vue';
+import DifficultyScreen from './components/difficulty-screen.vue';
 import { loadMeta, saveMeta, computeStartRunState, goldMultiplier, PERMA, permaCost } from './game/meta';
 import { getCharacter } from './game/characters';
 import { addRecord, recordStats, getPlayerName } from './game/leaderboard';
+import { getDifficulty, type Difficulty } from './game/difficulty';
 import { submitRun } from './game/api';
 import type { RunState } from './game/upgrades';
 import type { RunResult } from './game/game';
 
 const meta = reactive(loadMeta());
-const screen = ref<'landing' | 'menu' | 'game' | 'leaderboard' | 'bestiary'>('landing');
+const screen = ref<'landing' | 'difficulty' | 'menu' | 'game' | 'leaderboard' | 'bestiary'>('landing');
 
 const startRun = shallowRef<RunState>();
 const characterColor = ref<[number, number, number]>([1, 1, 1]);
@@ -50,13 +54,21 @@ const characterModel = ref<string>();
 const goldMul = ref(1);
 let lastCharId = 'matt';
 
+const DIFF_KEY = 'animal-survivors:difficulty';
+const difficulty = shallowRef<Difficulty>(getDifficulty(localStorage.getItem(DIFF_KEY) ?? 'easy'));
+function onSelectDifficulty(id: string) {
+  difficulty.value = getDifficulty(id);
+  localStorage.setItem(DIFF_KEY, id);
+  screen.value = 'menu';
+}
+
 function onStart(charId: string) {
   const ch = getCharacter(charId);
   lastCharId = charId;
   startRun.value = computeStartRunState(charId, meta.perma);
   characterColor.value = ch.bodyColor;
   characterModel.value = ch.model;
-  goldMul.value = goldMultiplier(meta.perma);
+  goldMul.value = goldMultiplier(meta.perma) * difficulty.value.goldReward;
   screen.value = 'game';
 }
 

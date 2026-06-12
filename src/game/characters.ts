@@ -106,6 +106,34 @@ export const CHARACTERS: Character[] = [
       s.auraRadius = 4;
     },
   },
+  {
+    id: 'anne',
+    name: '砲手安妮',
+    emoji: '💥',
+    cost: 400,
+    trait: '範圍轟炸｜起始攻擊：新星爆',
+    desc: '開局即有定期向外擴張的新星爆，清群能力極強，適合站陣中央炸怪。',
+    bodyColor: [0.8, 0.35, 0.4],
+    model: '/models/zombie/char_anne.gltf',
+    apply: (s) => {
+      s.novaRadius = 6;
+      s.novaDamage += 2;
+    },
+  },
+  {
+    id: 'mako',
+    name: '鯊牙馬可',
+    emoji: '🦈',
+    cost: 450,
+    trait: '暴擊爆發｜起始攻擊：高暴擊',
+    desc: '30% 暴擊率開局，子彈常打出 2 倍傷害，單體爆發兇猛；疊攻擊力後更可怕。',
+    bodyColor: [0.4, 0.55, 0.7],
+    model: '/models/zombie/char_mako.gltf',
+    apply: (s) => {
+      s.critChance = 0.3;
+      s.damage += 1;
+    },
+  },
 ];
 
 export function getCharacter(id: string): Character {

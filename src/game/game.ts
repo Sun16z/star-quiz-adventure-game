@@ -16,6 +16,7 @@ import {
 import { loadModel, loadCharacter } from './model-loader';
 import type { AnimationGroup } from '@babylonjs/core';
 import { createTerrain } from './terrain';
+import { DIFFICULTIES, type Difficulty } from './difficulty';
 import { scatterGroundDecals, buildRoads } from './ground-decals';
 import { CONFIG } from './config';
 import { Input } from './input';
@@ -24,7 +25,7 @@ import { ZombieHorde } from './zombie-horde';
 import { WeaponSystem } from './weapon-system';
 import { ExtraWeapons } from './extra-weapons';
 import { GemSystem } from './gem-system';
-import { Boss, BOSS_COUNT } from './boss';
+import { Boss, BOSS_COUNT, BOSS_INFO } from './boss';
 import { BossHazards } from './boss-hazards';
 import { BloodDecals } from './decals';
 import { Obstacle, resolveObstacles } from './obstacles';
@@ -85,6 +86,8 @@ export interface GameOptions {
   characterModel?: string;
   /** 金幣加成倍率（貪婪） */
   goldMultiplier?: number;
+  /** 難度設定 */
+  difficulty?: Difficulty;
 }
 
 export interface GameHandle {
@@ -100,6 +103,8 @@ export interface GameHandle {
   getDebugParams: () => DebugParamView[];
   setDebugParam: (index: number, value: number) => void;
   getUpgradeStatus: () => UpgradeStatusView[];
+  getBossNames: () => string[];
+  summonBoss: (index: number) => void;
 }
 
 export interface UpgradeStatusView {
@@ -195,6 +200,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   }
 
   const goldMul = options.goldMultiplier ?? 1;
+  const diff = options.difficulty ?? DIFFICULTIES[0];
   const runTemplate: RunState = options.startRunState ?? createRunState();
 
   const input = new Input();
@@ -208,8 +214,36 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   const gems = new GemSystem(scene);
   const boss = new Boss(scene);
   boss.setHeightFn(heightAt);
+  boss.setHpScale(diff.bossHp);
   const hazards = new BossHazards(scene);
+  enemies.setHazards(hazards);
+  enemies.rangedDamage = 7 * diff.enemyContact;
   const bloodDecals = new BloodDecals(scene);
+
+  /** 減速光環視覺：藍色貼地圓盤 */
+  const slowField = MeshBuilder.CreateDisc('slow-field', { radius: 1, tessellation: 48 }, scene);
+  slowField.rotation.x = Math.PI / 2;
+  slowField.isPickable = false;
+  const slowMat = new StandardMaterial('slow-mat', scene);
+  slowMat.diffuseColor = new Color3(0.4, 0.7, 1);
+  slowMat.emissiveColor = new Color3(0.2, 0.5, 0.9);
+  slowMat.specularColor = Color3.Black();
+  slowMat.disableLighting = true;
+  slowMat.alpha = 0.18;
+  slowMat.backFaceCulling = false;
+  slowField.material = slowMat;
+  slowField.setEnabled(false);
+
+  /** 護盾視覺：青色發光環 */
+  const shieldRing = MeshBuilder.CreateTorus('shield-ring', { diameter: 2.4, thickness: 0.18, tessellation: 32 }, scene);
+  const shieldMat = new StandardMaterial('shield-mat', scene);
+  shieldMat.emissiveColor = new Color3(0.4, 0.9, 1);
+  shieldMat.diffuseColor = new Color3(0, 0, 0);
+  shieldMat.specularColor = Color3.Black();
+  shieldMat.disableLighting = true;
+  shieldRing.material = shieldMat;
+  shieldRing.isPickable = false;
+  shieldRing.setEnabled(false);
 
   /** 寶箱模型範本（非同步載入，spawn 時複製；未就緒則退回程序化方塊） */
   let chestTemplate: TransformNode | null = null;
@@ -258,6 +292,9 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   let xpDebug = false;
   let invincible = false;
   let boomerangScale = 1;
+  /** 護盾狀態 */
+  let shieldReady = false;
+  let shieldTimer = 0;
   function requestJump() {
     if (state === 'running') jumpRequested = true;
   }
@@ -480,7 +517,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
     /** 跳躍：地表高度之上的拋物線位移（jumpY 為離地高度） */
     if (jumpRequested && grounded) {
-      vy = CONFIG.player.jump.strength;
+      vy = eff.jumpStrength;
       grounded = false;
     }
     jumpRequested = false;
@@ -503,8 +540,9 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     camera.target.set(px, groundY + 1.2, pz);
 
     /** 生成導演：隨時間升壓 */
-    enemies.hpMul = 1 + time * CONFIG.director.hpGrowthPerSec;
-    enemies.speedMul = 1 + time * CONFIG.director.speedGrowthPerSec;
+    enemies.hpMul = (1 + time * CONFIG.director.hpGrowthPerSec * diff.growth) * diff.enemyHp;
+    /** 怪速含「時緩」倍率與難度 */
+    enemies.speedMul = (1 + time * CONFIG.director.speedGrowthPerSec * diff.growth) * eff.enemySpeedMul * diff.enemySpeed;
     enemies.tier = Math.min(1, time / 120);
     const target = Math.min(
       CONFIG.director.maxCount,
@@ -514,7 +552,15 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
     grid.clear();
     enemies.insertAll(grid);
-    enemies.update(dt, px, pz, grid, obstacles);
+    enemies.update(dt, px, pz, grid, obstacles, eff.slowRadius, eff.slowFactor);
+    /** 減速光環視覺 */
+    if (eff.slowRadius > 0) {
+      slowField.position.set(px, groundY + 0.06, pz);
+      slowField.scaling.set(eff.slowRadius, eff.slowRadius, eff.slowRadius);
+      if (!slowField.isEnabled()) slowField.setEnabled(true);
+    } else if (slowField.isEnabled()) {
+      slowField.setEnabled(false);
+    }
 
     /** 王：依序登場（共 BOSS_COUNT 隻） */
     bossTimer += dt;
@@ -529,6 +575,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       const y = heightAt(x, z);
       enemyDeathBurst(scene, new Vector3(x, y + CONFIG.enemy.y, z));
       bloodDecals.spawn(x, z, y + 0.03);
+      /** 吸血 */
+      if (eff.lifestealOnKill > 0) hp = Math.min(run.maxHp, hp + eff.lifestealOnKill);
       sound.hit();
     };
     kills += weapon.update(dt, px, pz, enemies, boss, grid, eff, onKill, groundY);
@@ -559,12 +607,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     }
 
     boss.update(dt, px, pz, obstacles, hazards);
-    /** 王招式對玩家造成的傷害（彈幕／震波／毒池，無視騰空） */
+    /** 王招式對玩家造成的傷害（彈幕／震波／毒池，無視騰空），統一於下方結算 */
     const hazardDmg = hazards.update(dt, px, pz, groundY);
-    if (hazardDmg > 0 && !invincible) {
-      hp -= hazardDmg;
-      dmgAccum += hazardDmg;
-    }
 
     /** 道具：每 15 秒生成寶箱與回血，並更新拾取 */
     chestTimer += dt;
@@ -599,24 +643,55 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       const dz = enemies.getZ(j) - pz;
       if (dx * dx + dz * dz <= contactRange2) touching = true;
     });
-    const contactDps = CONFIG.player.contactDps * (1 + time * CONFIG.director.contactGrowthPerSec);
+    const contactDps = CONFIG.player.contactDps * (1 + time * CONFIG.director.contactGrowthPerSec * diff.growth) * diff.enemyContact;
     const bossTouch = boss.contactsPlayer(px, pz, CONFIG.player.radius);
-    /** 騰空時可躲開接觸傷害 */
-    const hurt = (touching || bossTouch) && !airborne;
-    if (touching && !airborne && !invincible) {
-      const d = contactDps * dt;
-      hp -= d;
-      dmgAccum += d;
+
+    /** 護盾：定期生成，可擋下一次傷害 */
+    if (eff.shieldInterval > 0) {
+      if (!shieldReady) {
+        shieldTimer += dt;
+        if (shieldTimer >= eff.shieldInterval) {
+          shieldReady = true;
+          shieldTimer = 0;
+        }
+      }
+    } else {
+      shieldReady = false;
     }
-    if (bossTouch && !airborne && !invincible) {
-      const d = boss.contactDps * dt;
-      hp -= d;
-      dmgAccum += d;
+
+    /** 統一結算本幀傷害：接觸（騰空可躲）+ 王招式；套用減傷與護盾 */
+    let incoming = 0;
+    if (!airborne) {
+      if (touching) incoming += contactDps * dt;
+      if (bossTouch) incoming += boss.contactDps * diff.enemyContact * dt;
     }
+    incoming += hazardDmg;
+    if (invincible) incoming = 0;
+    incoming *= 1 - eff.damageReduction;
+    if (incoming > 0 && shieldReady) {
+      incoming = 0;
+      shieldReady = false;
+      shieldTimer = 0;
+    }
+    if (incoming > 0) {
+      hp -= incoming;
+      dmgAccum += incoming;
+    }
+
+    /** 護盾視覺 */
+    if (shieldReady) {
+      shieldRing.position.set(px, groundY + 1.1, pz);
+      if (!shieldRing.isEnabled()) shieldRing.setEnabled(true);
+    } else if (shieldRing.isEnabled()) {
+      shieldRing.setEnabled(false);
+    }
+
+    /** 生命再生 */
+    if (eff.hpRegen > 0 && hp > 0) hp = Math.min(run.maxHp, hp + eff.hpRegen * dt);
 
     /** 受擊回饋：間歇火花 + 頭上飄出扣血數字 */
     hurtTimer -= dt;
-    if ((hurt || hazardDmg > 0) && hurtTimer <= 0) {
+    if (incoming > 0 && hurtTimer <= 0) {
       hurtTimer = 0.35;
       hurtBurst(scene, new Vector3(px, groundY + 1, pz));
       sound.hurt();
@@ -789,6 +864,10 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       jumpY = 0;
       grounded = true;
       jumpRequested = false;
+      shieldReady = false;
+      shieldTimer = 0;
+      shieldRing.setEnabled(false);
+      slowField.setEnabled(false);
       playerMoving = false;
       playerWalk?.stop();
       playerIdle?.start(true);
@@ -846,6 +925,14 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
         level: levels[u.id] ?? 0,
         maxLevel: u.maxLevel,
       }));
+    },
+    getBossNames() {
+      return BOSS_INFO.map((b) => b.name);
+    },
+    summonBoss(index: number) {
+      if (index < 0 || index >= BOSS_COUNT) return;
+      boss.spawn(index, player.position.x, player.position.z);
+      bossTimer = 0;
     },
   };
 }

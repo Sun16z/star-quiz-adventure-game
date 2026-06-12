@@ -74,16 +74,40 @@ const BOSS_DEFS: BossDef[] = [
     desc: '第 4 隻王。在你腳下生成毒池，停留會持續扣血，別站在綠池裡。',
   },
   {
-    name: '終極殭屍王',
-    model: '/models/zombie/zombie_chubby.gltf',
-    radius: 8,
-    speed: 6.5,
-    contactDps: 40,
+    name: '海盜船長',
+    model: '/models/zombie/boss_captain.gltf',
+    radius: 6,
+    speed: 7,
+    contactDps: 34,
+    hpMul: 1.3,
+    skill: 'aimed',
+    skillName: '手槍掃射',
+    skillInterval: 2.4,
+    desc: '不死海盜船長，邊逼近邊以手槍朝你掃射彈幕。',
+  },
+  {
+    name: '巨鯊',
+    model: '/models/zombie/boss_shark.gltf',
+    radius: 7,
+    speed: 11,
+    contactDps: 36,
+    hpMul: 1.4,
+    skill: 'charge',
+    skillName: '高速衝咬',
+    skillInterval: 4,
+    desc: '從陸上滑行的巨鯊，蓄力後高速衝咬，閃避時機要抓準。',
+  },
+  {
+    name: '深海觸手',
+    model: '/models/zombie/boss_tentacle.gltf',
+    radius: 21,
+    speed: 3,
+    contactDps: 42,
     hpMul: 1.9,
     skill: 'radial',
-    skillInterval: 3,
-    skillName: '環形彈幕',
-    desc: '最終王。血量最高、體型最大，釋放全方位環形彈幕，擊敗即破關。',
+    skillName: '深海彈幕',
+    skillInterval: 1.5,
+    desc: '最終王。克拉肯之臂緩慢逼近，釋放全方位環形彈幕，擊敗即破關。',
   },
 ];
 
@@ -133,6 +157,8 @@ export class Boss {
   private hitFlash = 0;
   /** 地形高度查詢（貼地用） */
   private heightAt: (x: number, z: number) => number = () => 0;
+  /** 難度血量倍率 */
+  private hpScale = 1;
 
   private skill: BossSkill = 'charge';
   private skillInterval = 5;
@@ -186,6 +212,11 @@ export class Boss {
     this.heightAt = fn;
   }
 
+  /** 設定難度血量倍率 */
+  setHpScale(s: number) {
+    this.hpScale = s;
+  }
+
   spawn(index: number, playerX: number, playerZ: number) {
     const def = BOSS_DEFS[index];
     this.index = index;
@@ -197,7 +228,7 @@ export class Boss {
     this.radius = def.radius;
     this.contactDps = def.contactDps;
 
-    const hp = (CONFIG.boss.hpBase + CONFIG.boss.hpPerSpawn * index) * def.hpMul;
+    const hp = (CONFIG.boss.hpBase + CONFIG.boss.hpPerSpawn * index) * def.hpMul * this.hpScale;
     this.hp = hp;
     this.maxHp = hp;
 
@@ -294,8 +325,8 @@ export class Boss {
       }
     } else {
       this.phaseT += dt;
-      this.x += this.dashX * this.speed * 4 * dt;
-      this.z += this.dashZ * this.speed * 4 * dt;
+      this.x += this.dashX * this.speed * 8 * dt;
+      this.z += this.dashZ * this.speed * 8 * dt;
       resolveObstacles(obstacles, this.x, this.z, this.radius, this.resolved);
       this.x = this.resolved.x;
       this.z = this.resolved.z;
@@ -303,7 +334,7 @@ export class Boss {
       this.root.position.z = this.z;
       this.root.position.y = this.heightAt(this.x, this.z);
       this.root.rotation.y = Math.atan2(this.dashX, this.dashZ);
-      if (this.phaseT >= 0.45) this.phase = 'chase';
+      if (this.phaseT >= 1) this.phase = 'chase';
     }
   }
 
