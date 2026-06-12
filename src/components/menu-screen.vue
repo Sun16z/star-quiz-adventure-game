@@ -1,5 +1,13 @@
 <template>
   <div class="absolute inset-0 overflow-auto bg-gradient-to-b from-[#0b1020] to-[#161f38] text-white">
+    <!-- 返回首頁 -->
+    <button
+      class="absolute left-3 top-3 z-10 rounded-full bg-white/10 px-4 py-1 text-sm font-black backdrop-blur-md transition hover:bg-white/20 active:scale-95"
+      @click="emit('home')"
+    >
+      ← 首頁
+    </button>
+
     <!-- Debug 開關 -->
     <div class="absolute right-3 top-3 z-10 flex items-center gap-2">
       <button
@@ -101,43 +109,6 @@
         ▶ 開始（{{ selectedName }}）
       </button>
 
-      <!-- 怪物圖鑑 -->
-      <div>
-        <div class="mb-2 text-lg font-black">怪物圖鑑</div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div
-            v-for="z in zombieInfo"
-            :key="z.name"
-            class="flex flex-col items-center gap-1 rounded-2xl bg-white/5 p-3 text-center ring-1 ring-white/10"
-          >
-            <img v-if="modelThumbs[z.model]" :src="modelThumbs[z.model]" class="h-20 w-20 rounded-xl" :alt="z.name" />
-            <span v-else class="flex h-20 w-20 items-center justify-center text-4xl">🧟</span>
-            <div class="font-black">{{ z.name }}</div>
-            <div class="text-[0.72rem] font-bold text-emerald-300/80">{{ z.role }}</div>
-            <div class="text-[0.66rem] leading-snug text-white/55">{{ z.desc }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 王圖鑑 -->
-      <div>
-        <div class="mb-2 text-lg font-black">殭屍王圖鑑（依序登場）</div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div
-            v-for="(b, i) in bossInfo"
-            :key="b.name"
-            class="flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10"
-          >
-            <img v-if="modelThumbs[b.model]" :src="modelThumbs[b.model]" class="h-16 w-16 shrink-0 rounded-xl" :alt="b.name" />
-            <span v-else class="flex h-16 w-16 shrink-0 items-center justify-center text-3xl">🧟‍♂️</span>
-            <div class="min-w-0">
-              <div class="font-black">{{ i + 1 }}. {{ b.name }}</div>
-              <div class="text-[0.72rem] font-bold text-rose-300/80">招式：{{ b.skill }}</div>
-              <div class="text-[0.66rem] leading-snug text-white/55">{{ b.desc }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -147,9 +118,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { CHARACTERS, getCharacter, type Character } from '../game/characters';
 import { PERMA, permaCost, type MetaData, type PermaUpgrade } from '../game/meta';
 import { setupCharacterPreview, type PreviewHandle } from '../game/character-previews';
-import { ZOMBIE_INFO } from '../game/zombie-horde';
-import { BOSS_INFO } from '../game/boss';
-import { renderModelThumbnails } from '../game/model-thumbs';
 
 const props = defineProps<{ meta: MetaData }>();
 const emit = defineEmits<{
@@ -157,6 +125,7 @@ const emit = defineEmits<{
   (e: 'buy', permaId: string): void;
   (e: 'unlock', characterId: string): void;
   (e: 'add-gold', amount: number): void;
+  (e: 'home'): void;
 }>();
 
 const characters = CHARACTERS;
@@ -184,17 +153,6 @@ onMounted(async () => {
 });
 onBeforeUnmount(() => {
   for (const h of handles) h.dispose();
-});
-
-/** 怪物 / 王 圖鑑縮圖（靜態，依模型路徑） */
-const zombieInfo = ZOMBIE_INFO;
-const bossInfo = BOSS_INFO;
-const modelThumbs = ref<Record<string, string>>({});
-onMounted(() => {
-  const models = [...ZOMBIE_INFO.map((z) => z.model), ...BOSS_INFO.map((b) => b.model)];
-  void renderModelThumbnails(models, (model, url) => {
-    modelThumbs.value = { ...modelThumbs.value, [model]: url };
-  });
 });
 
 const DEBUG_KEY = 'animal-survivors:debug';
