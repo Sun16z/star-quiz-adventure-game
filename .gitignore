@@ -5,3 +5,6 @@ dist-ssr
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# 原始素材包（殭屍模型來源，僅 public/models/zombie 內為實際使用）
+download
