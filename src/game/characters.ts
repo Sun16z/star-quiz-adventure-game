@@ -18,48 +18,49 @@ export interface Character {
 
 export const CHARACTERS: Character[] = [
   {
-    id: 'penguin',
-    name: '企鵝',
-    emoji: '🐧',
+    id: 'matt',
+    name: '麥特',
+    emoji: '🔫',
     cost: 0,
     trait: '均衡，無明顯弱點',
-    bodyColor: [0.2, 0.3, 0.45],
-    model: '/models/penguin.glb',
+    bodyColor: [0.3, 0.45, 0.6],
+    model: '/models/zombie/survivor_matt.gltf',
     apply: () => {},
   },
   {
-    id: 'fox',
-    name: '狐狸',
-    emoji: '🦊',
+    id: 'lis',
+    name: '莉絲',
+    emoji: '👟',
     cost: 300,
     trait: '高速但脆皮',
-    bodyColor: [0.95, 0.45, 0.15],
-    model: '/models/fox.glb',
+    bodyColor: [0.8, 0.4, 0.5],
+    model: '/models/zombie/survivor_lis.gltf',
     apply: (s) => {
       s.moveSpeed *= 1.2;
       s.maxHp -= 25;
     },
   },
   {
-    id: 'chick',
-    name: '小雞',
-    emoji: '🐤',
+    id: 'sam',
+    name: '山姆',
+    emoji: '⚡',
     cost: 300,
     trait: '高攻速、輸出爆發',
-    bodyColor: [1, 0.85, 0.2],
-    model: '/models/chicken.glb',
+    bodyColor: [0.85, 0.7, 0.3],
+    model: '/models/zombie/survivor_sam.gltf',
     apply: (s) => {
       s.fireInterval *= 0.78;
       s.maxHp -= 15;
     },
   },
   {
-    id: 'mouse',
-    name: '老鼠',
-    emoji: '🐭',
+    id: 'shaun',
+    name: '尚恩',
+    emoji: '🧲',
     cost: 200,
     trait: '拾取範圍大、經驗多',
-    bodyColor: [0.6, 0.6, 0.65],
+    bodyColor: [0.5, 0.6, 0.45],
+    model: '/models/zombie/survivor_shaun.gltf',
     apply: (s) => {
       s.pickupRadius *= 1.7;
       s.xpMultiplier *= 1.2;

@@ -1,5 +1,12 @@
 <template>
-  <menu-screen v-if="screen === 'menu'" :meta="meta" @start="onStart" @buy="onBuy" @unlock="onUnlock" />
+  <menu-screen
+    v-if="screen === 'menu'"
+    :meta="meta"
+    @start="onStart"
+    @buy="onBuy"
+    @unlock="onUnlock"
+    @add-gold="onAddGold"
+  />
   <game-view
     v-else
     :character-color="characterColor"
@@ -63,6 +70,11 @@ function onUnlock(charId: string) {
   if (meta.unlocked.includes(charId) || meta.gold < ch.cost) return;
   meta.gold -= ch.cost;
   meta.unlocked.push(charId);
+  saveMeta(meta);
+}
+
+function onAddGold(amount: number) {
+  meta.gold += amount;
   saveMeta(meta);
 }
 </script>

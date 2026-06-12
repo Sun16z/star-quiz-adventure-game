@@ -9,6 +9,8 @@ export const CONFIG = {
     maxHp: 100,
     /** 接觸敵人時每秒受到的傷害 */
     contactDps: 12,
+    /** 跳躍：初速、重力、超過此高度視為騰空（可躲接觸傷害） */
+    jump: { strength: 9, gravity: 26, dodgeHeight: 0.7 },
   },
 
   enemy: {
@@ -25,12 +27,12 @@ export const CONFIG = {
     spawnRingMax: 60,
   },
 
-  /** 生成導演：敵人數量與強度隨時間升壓（從少量開始） */
+  /** 生成導演：敵人數量與強度隨時間升壓（全動畫殭屍，數量上限較低） */
   director: {
-    baseCount: 40,
-    addPerStep: 18,
+    baseCount: 10,
+    addPerStep: 4,
     stepIntervalSec: 6,
-    maxCount: 750,
+    maxCount: 50,
     /** 每秒血量乘數成長（hpMul = 1 + elapsed * hpGrowthPerSec） */
     hpGrowthPerSec: 1 / 45,
     /** 每秒速度乘數成長 */
@@ -44,7 +46,7 @@ export const CONFIG = {
     intervalSec: 55,
     hpBase: 350,
     hpPerSpawn: 280,
-    speed: 4,
+    speed: 6,
     radius: 3,
     contactDps: 32,
     /** 擊敗後噴出的經驗寶石數 */
@@ -61,6 +63,21 @@ export const CONFIG = {
     range: 45,
     maxProjectiles: 300,
     lifetime: 1.4,
+  },
+
+  /** 地圖道具 */
+  items: {
+    /** 寶箱／回血各自的生成間隔（毫秒） */
+    chestInterval: 15000,
+    healInterval: 15000,
+    /** 增益持續時間（毫秒） */
+    buffDuration: 10000,
+    /** 拾取距離 */
+    pickupRadius: 2.4,
+    /** 未拾取的存在時間（毫秒換算秒） */
+    lifetimeSec: 20,
+    /** 回血百分比（隨機其一） */
+    healPercents: [0.15, 0.3, 0.5],
   },
 
   /** 空間網格 cell 大小（約等於敵人分離半徑量級） */

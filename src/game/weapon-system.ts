@@ -10,9 +10,10 @@ import {
 } from '@babylonjs/core';
 import { CONFIG } from './config';
 import { SpatialGrid } from './spatial-grid';
-import { EnemySystem } from './enemy-system';
+import { ZombieHorde } from './zombie-horde';
 import { Boss } from './boss';
 import { RunState } from './upgrades';
+import { sound } from './sound';
 
 /** 多重彈之間的角度間隔（弧度） */
 const SPREAD_STEP = 0.16;
@@ -49,15 +50,13 @@ export class WeaponSystem {
     this.active = new Uint8Array(this.cap);
     this.matrixBuffer = new Float32Array(this.cap * 16);
 
-    const base = MeshBuilder.CreateSphere(
-      'projectile',
-      { diameter: CONFIG.weapon.projectileRadius * 2, segments: 6 },
-      scene,
-    );
-    const material = new StandardMaterial('projectile-material', scene);
-    material.diffuseColor = new Color3(0.95, 0.98, 1);
-    material.emissiveColor = new Color3(0.4, 0.7, 1);
+    /** 子彈：發光黃色小球（彈道） */
+    const base = MeshBuilder.CreateSphere('bullet', { diameter: 0.45, segments: 6 }, scene);
+    const material = new StandardMaterial('bullet-material', scene);
+    material.diffuseColor = new Color3(1, 0.9, 0.4);
+    material.emissiveColor = new Color3(1, 0.7, 0.1);
     material.specularColor = Color3.Black();
+    material.disableLighting = true;
     base.material = material;
     this.mesh = base;
 
@@ -87,7 +86,7 @@ export class WeaponSystem {
     }
   }
 
-  private fire(playerX: number, playerZ: number, enemies: EnemySystem, run: RunState) {
+  private fire(playerX: number, playerZ: number, enemies: ZombieHorde, run: RunState) {
     const range2 = run.range * run.range;
     let bestIndex = -1;
     let bestDist = range2;
@@ -103,6 +102,7 @@ export class WeaponSystem {
     if (bestIndex < 0) return;
 
     const baseAngle = Math.atan2(enemies.getZ(bestIndex) - playerZ, enemies.getX(bestIndex) - playerX);
+    sound.shoot();
     const count = run.projectileCount;
     for (let k = 0; k < count; k++) {
       const angle = baseAngle + (k - (count - 1) / 2) * SPREAD_STEP;
@@ -115,7 +115,7 @@ export class WeaponSystem {
     dt: number,
     playerX: number,
     playerZ: number,
-    enemies: EnemySystem,
+    enemies: ZombieHorde,
     boss: Boss,
     grid: SpatialGrid,
     run: RunState,

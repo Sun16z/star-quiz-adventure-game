@@ -30,7 +30,7 @@ export interface MetaData {
   perma: Record<string, number>;
 }
 
-const KEY = 'animal-survivors:meta';
+const KEY = 'animal-survivors:meta:v2';
 
 export function loadMeta(): MetaData {
   try {
@@ -39,14 +39,14 @@ export function loadMeta(): MetaData {
       const data = JSON.parse(raw) as Partial<MetaData>;
       return {
         gold: data.gold ?? 0,
-        unlocked: data.unlocked ?? ['penguin'],
+        unlocked: data.unlocked ?? ['matt'],
         perma: data.perma ?? {},
       };
     }
   } catch {
     /* 忽略損毀資料 */
   }
-  return { gold: 0, unlocked: ['penguin'], perma: {} };
+  return { gold: 0, unlocked: ['matt'], perma: {} };
 }
 
 export function saveMeta(meta: MetaData) {

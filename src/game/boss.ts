@@ -22,15 +22,15 @@ export class Boss {
     this.fallback.parent = this.root;
     this.fallback.position.y = CONFIG.boss.radius;
     const material = new StandardMaterial('boss-material', scene);
-    material.diffuseColor = new Color3(0.97, 0.95, 0.9);
-    material.emissiveColor = new Color3(0.55, 0.12, 0.12);
+    material.diffuseColor = new Color3(0.4, 0.55, 0.3);
+    material.emissiveColor = new Color3(0.2, 0.4, 0.15);
     material.specularColor = Color3.Black();
     this.fallback.material = material;
 
     this.root.setEnabled(false);
 
-    /** 載入航空母雞模型（放大） */
-    void loadModel(scene, '/models/chicken.glb', CONFIG.boss.radius * 2.2).then((node) => {
+    /** 載入巨型殭屍（放大的胖殭屍） */
+    void loadModel(scene, '/models/zombie/zombie_chubby.gltf', CONFIG.boss.radius * 2.2, true).then((node) => {
       if (node) {
         node.parent = this.root;
         this.fallback.setEnabled(false);

@@ -9,6 +9,7 @@ export async function loadModel(
   scene: Scene,
   path: string,
   targetHeight: number,
+  preferWalk = false,
 ): Promise<TransformNode | null> {
   try {
     const slash = path.lastIndexOf('/');
@@ -19,10 +20,10 @@ export async function loadModel(
     const root = result.meshes[0];
 
     result.animationGroups.forEach((g) => g.stop());
-    const anim =
-      result.animationGroups.find((g) => /idle/i.test(g.name)) ??
-      result.animationGroups.find((g) => /walk/i.test(g.name)) ??
-      result.animationGroups[0];
+    const groups = result.animationGroups;
+    const walk = groups.find((g) => /walk|run|move/i.test(g.name));
+    const idle = groups.find((g) => /idle/i.test(g.name));
+    const anim = preferWalk ? (walk ?? idle ?? groups[0]) : (idle ?? walk ?? groups[0]);
     anim?.play(true);
 
     /** 依世界包圍盒高度正規化縮放，底部對齊地面 */

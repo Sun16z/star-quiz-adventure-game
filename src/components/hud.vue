@@ -3,8 +3,7 @@
     <!-- 左上：狀態 -->
     <div class="absolute top-4 left-4 flex flex-col gap-2 text-white">
       <div class="flex items-center gap-3 rounded-2xl bg-black/40 px-4 py-2 backdrop-blur-md">
-        <span class="text-3xl font-black tracking-wider">動物大逃殺</span>
-        <span class="text-xs opacity-60">效能原型</span>
+        <span class="text-3xl font-black tracking-wider">殭屍大逃殺</span>
       </div>
 
       <div class="flex flex-wrap gap-2 text-sm font-bold">
@@ -43,7 +42,7 @@
       v-if="stats.bossActive"
       class="absolute left-1/2 top-4 w-[min(80vw,32rem)] -translate-x-1/2 text-center text-white"
     >
-      <div class="mb-1 text-sm font-black tracking-widest text-rose-300">⚠ 航空母雞 ⚠</div>
+      <div class="mb-1 text-sm font-black tracking-widest text-rose-300">⚠ 殭屍王 ⚠</div>
       <div class="h-5 overflow-hidden rounded-full bg-black/50 ring-1 ring-rose-400/40 backdrop-blur-md">
         <div
           class="h-full bg-gradient-to-r from-rose-600 to-red-400 transition-[width] duration-100"

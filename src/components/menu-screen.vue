@@ -1,10 +1,28 @@
 <template>
   <div class="absolute inset-0 overflow-auto bg-gradient-to-b from-[#0b1020] to-[#161f38] text-white">
+    <!-- Debug 開關 -->
+    <div class="absolute right-3 top-3 z-10 flex items-center gap-2">
+      <button
+        class="rounded-full px-3 py-1 text-xs font-black transition"
+        :class="debug ? 'bg-lime-400 text-black' : 'bg-white/10 text-white/60'"
+        @click="toggleDebug"
+      >
+        🛠 Debug {{ debug ? 'ON' : 'OFF' }}
+      </button>
+      <button
+        v-if="debug"
+        class="rounded-full bg-amber-400 px-3 py-1 text-xs font-black text-black"
+        @click="emit('add-gold', 1000)"
+      >
+        +1000💰
+      </button>
+    </div>
+
     <div class="mx-auto flex max-w-3xl flex-col gap-6 p-6">
       <!-- 標題 -->
       <div class="pt-4 text-center">
-        <div class="text-5xl font-black tracking-wider">動物大逃殺</div>
-        <div class="mt-1 text-sm text-white/60">3D 倖存者類 roguelite</div>
+        <div class="text-5xl font-black tracking-wider">殭屍大逃殺</div>
+        <div class="mt-1 text-sm text-white/60">在殭屍潮中倖存・3D 倖存者類 roguelite</div>
         <div class="mt-3 inline-block rounded-full bg-amber-400/90 px-5 py-1 text-lg font-black text-black">
           💰 {{ meta.gold }}
         </div>
@@ -82,16 +100,24 @@ const emit = defineEmits<{
   (e: 'start', characterId: string): void;
   (e: 'buy', permaId: string): void;
   (e: 'unlock', characterId: string): void;
+  (e: 'add-gold', amount: number): void;
 }>();
 
 const characters = CHARACTERS;
 const perma = PERMA;
-const selectedId = ref('penguin');
+const selectedId = ref('matt');
+
+const DEBUG_KEY = 'animal-survivors:debug';
+const debug = ref(localStorage.getItem(DEBUG_KEY) === '1');
+function toggleDebug() {
+  debug.value = !debug.value;
+  localStorage.setItem(DEBUG_KEY, debug.value ? '1' : '0');
+}
 
 const selectedName = computed(() => getCharacter(selectedId.value).name);
 
 function isUnlocked(id: string) {
-  return props.meta.unlocked.includes(id);
+  return debug.value || props.meta.unlocked.includes(id);
 }
 function level(id: string) {
   return props.meta.perma[id] ?? 0;

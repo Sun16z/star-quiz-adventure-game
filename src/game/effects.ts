@@ -5,6 +5,9 @@ import {
   Color4,
   ParticleSystem,
   DynamicTexture,
+  MeshBuilder,
+  StandardMaterial,
+  Mesh,
 } from '@babylonjs/core';
 
 let glowTexture: DynamicTexture | undefined;
@@ -73,4 +76,51 @@ export function bossDeathBurst(scene: Scene, pos: Vector3) {
 /** 玩家受擊的小火花 */
 export function hurtBurst(scene: Scene, pos: Vector3) {
   burst(scene, pos, new Color3(1, 0.3, 0.3), 14, 7, 0.5, 0.35);
+}
+
+/** 飄字（增益名稱、回血量）：billboard 文字向上飄並淡出 */
+export function spawnText(scene: Scene, pos: Vector3, text: string, colorHex: string) {
+  const width = 512;
+  const height = 128;
+  const texture = new DynamicTexture('text', { width, height }, scene, false);
+  texture.hasAlpha = true;
+  const ctx = texture.getContext() as unknown as CanvasRenderingContext2D;
+  ctx.clearRect(0, 0, width, height);
+  ctx.font = '900 72px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = 9;
+  ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillStyle = colorHex;
+  ctx.strokeText(text, width / 2, height / 2);
+  ctx.fillText(text, width / 2, height / 2);
+  texture.update();
+
+  const plane = MeshBuilder.CreatePlane('text-plane', { width: 4, height: 1 }, scene);
+  plane.billboardMode = Mesh.BILLBOARDMODE_ALL;
+  plane.isPickable = false;
+  plane.position = new Vector3(pos.x, pos.y + 2.5, pos.z);
+  const material = new StandardMaterial('text-material', scene);
+  material.emissiveTexture = texture;
+  material.opacityTexture = texture;
+  material.emissiveColor = Color3.White();
+  material.disableLighting = true;
+  material.backFaceCulling = false;
+  plane.material = material;
+
+  const start = performance.now();
+  const duration = 1100;
+  const startY = plane.position.y;
+  const observer = scene.onBeforeRenderObservable.add(() => {
+    const progress = (performance.now() - start) / duration;
+    if (progress >= 1) {
+      scene.onBeforeRenderObservable.remove(observer);
+      plane.dispose();
+      material.dispose();
+      texture.dispose();
+      return;
+    }
+    plane.position.y = startY + progress * 1.8;
+    material.alpha = 1 - progress;
+  });
 }

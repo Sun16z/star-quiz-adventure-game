@@ -1,7 +1,7 @@
 <template>
   <div class="absolute inset-0 z-20 flex items-center justify-center bg-black/65 backdrop-blur-sm">
     <div class="w-[min(90vw,26rem)] rounded-3xl bg-[#1a2236] p-8 text-center text-white shadow-2xl ring-1 ring-white/10">
-      <div class="text-4xl font-black text-rose-400">你被淹沒了！</div>
+      <div class="text-4xl font-black text-rose-400">你被殭屍吞噬了！</div>
 
       <div class="my-5 grid grid-cols-3 gap-3">
         <div class="rounded-2xl bg-white/5 p-3">
