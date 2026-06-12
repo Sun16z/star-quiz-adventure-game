@@ -8,3 +8,15 @@ dist-ssr
 
 # 原始素材包（殭屍模型來源，僅 public/models/zombie 內為實際使用）
 download
+
+# Cloudflare / Wrangler
+.wrangler
+.dev.vars
+.dev.vars.*
+
+# 環境變數
+.env
+.env.*
+
+# 日誌
+*.log
