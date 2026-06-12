@@ -51,6 +51,13 @@
       @menu="emit('menu')"
     />
 
+    <victory-modal
+      v-if="stats.state === 'won'"
+      :stats="stats"
+      @restart="onRestart"
+      @menu="emit('menu')"
+    />
+
     <pause-menu-modal
       v-if="stats.state === 'paused'"
       @resume="onTogglePause"
@@ -68,6 +75,7 @@ import Hud from './hud.vue';
 import Joystick from './joystick.vue';
 import LevelUpModal from './level-up-modal.vue';
 import GameOverModal from './game-over-modal.vue';
+import VictoryModal from './victory-modal.vue';
 import PauseMenuModal from './pause-menu-modal.vue';
 
 const props = defineProps<{
@@ -97,6 +105,10 @@ const stats = reactive<GameStats>({
   bossActive: false,
   bossHp: 0,
   bossMaxHp: 0,
+  bossName: '',
+  bossSkill: '',
+  bossDefeated: 0,
+  bossTotal: 5,
   goldEarned: 0,
 });
 

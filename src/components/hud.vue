@@ -42,7 +42,11 @@
       v-if="stats.bossActive"
       class="absolute left-1/2 top-4 w-[min(80vw,32rem)] -translate-x-1/2 text-center text-white"
     >
-      <div class="mb-1 text-sm font-black tracking-widest text-rose-300">⚠ 殭屍王 ⚠</div>
+      <div class="mb-1 text-sm font-black tracking-widest text-rose-300">
+        ⚠ {{ stats.bossName }} ⚠
+        <span class="ml-1 text-amber-300/90">[{{ stats.bossSkill }}]</span>
+        <span class="ml-1 text-white/60">{{ stats.bossDefeated + 1 }}/{{ stats.bossTotal }}</span>
+      </div>
       <div class="h-5 overflow-hidden rounded-full bg-black/50 ring-1 ring-rose-400/40 backdrop-blur-md">
         <div
           class="h-full bg-gradient-to-r from-rose-600 to-red-400 transition-[width] duration-100"

@@ -14,6 +14,23 @@ export interface RunState {
   projectileCount: number;
   range: number;
   projectileSpeed: number;
+  // 環繞衛星
+  orbitalCount: number;
+  orbitalDamage: number;
+  orbitalRadius: number;
+  orbitalSpeed: number;
+  // 傷害光環
+  auraRadius: number;
+  auraDamage: number;
+  // 連鎖閃電
+  lightningCount: number;
+  lightningDamage: number;
+  // 新星爆
+  novaRadius: number;
+  novaDamage: number;
+  // 回力鏢
+  boomerangCount: number;
+  boomerangDamage: number;
 }
 
 export function createRunState(): RunState {
@@ -27,6 +44,18 @@ export function createRunState(): RunState {
     projectileCount: 1,
     range: CONFIG.weapon.range,
     projectileSpeed: CONFIG.weapon.projectileSpeed,
+    orbitalCount: 0,
+    orbitalDamage: 2,
+    orbitalRadius: 4,
+    orbitalSpeed: 2.4,
+    auraRadius: 0,
+    auraDamage: 1,
+    lightningCount: 0,
+    lightningDamage: 3,
+    novaRadius: 0,
+    novaDamage: 4,
+    boomerangCount: 0,
+    boomerangDamage: 4,
   };
 }
 
@@ -49,6 +78,62 @@ export const UPGRADES: Upgrade[] = [
   { id: 'maxhp', name: '最大生命', desc: '生命上限 +20 並補滿', emoji: '❤️', maxLevel: 5, apply: (s) => (s.maxHp += 20) },
   { id: 'magnet', name: '拾取範圍', desc: '經驗吸取範圍 +30%', emoji: '🧲', maxLevel: 5, apply: (s) => (s.pickupRadius *= 1.3) },
   { id: 'xpgain', name: '經驗加成', desc: '經驗獲得 +15%', emoji: '⭐', maxLevel: 5, apply: (s) => (s.xpMultiplier *= 1.15) },
+  {
+    id: 'orbital',
+    name: '環繞衛星',
+    desc: '召喚環繞身邊的能量球，碰撞傷害敵人；已有則 +1 顆並擴大環繞範圍',
+    emoji: '🛰️',
+    maxLevel: 6,
+    apply: (s) => {
+      s.orbitalCount += 1;
+      s.orbitalDamage += 1;
+      s.orbitalRadius += 0.7;
+    },
+  },
+  {
+    id: 'aura',
+    name: '傷害光環',
+    desc: '展開持續傷害光環，自動灼燒靠近的敵人；已有則擴大並增傷',
+    emoji: '🌀',
+    maxLevel: 6,
+    apply: (s) => {
+      s.auraRadius = s.auraRadius === 0 ? 4 : s.auraRadius + 0.8;
+      s.auraDamage += 1;
+    },
+  },
+  {
+    id: 'lightning',
+    name: '連鎖閃電',
+    desc: '定期電擊最近的敵人並向周圍連鎖；已有則 +1 連鎖數並增傷',
+    emoji: '⚡',
+    maxLevel: 5,
+    apply: (s) => {
+      s.lightningCount += 1;
+      s.lightningDamage += 1;
+    },
+  },
+  {
+    id: 'nova',
+    name: '新星爆',
+    desc: '定期釋放向外擴張的衝擊波，炸傷周圍所有敵人；已有則擴大並增傷',
+    emoji: '💥',
+    maxLevel: 5,
+    apply: (s) => {
+      s.novaRadius = s.novaRadius === 0 ? 6 : s.novaRadius + 1;
+      s.novaDamage += 2;
+    },
+  },
+  {
+    id: 'boomerang',
+    name: '回力鏢',
+    desc: '定期丟出長矛飛出再飛回，沿途貫穿傷害敵人；已有則 +1 支並增傷',
+    emoji: '🪃',
+    maxLevel: 5,
+    apply: (s) => {
+      s.boomerangCount += 1;
+      s.boomerangDamage += 1;
+    },
+  },
 ];
 
 /** 從尚未滿級的升級中隨機抽 n 個 */

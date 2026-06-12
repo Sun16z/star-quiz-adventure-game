@@ -78,6 +78,17 @@ export function hurtBurst(scene: Scene, pos: Vector3) {
   burst(scene, pos, new Color3(1, 0.3, 0.3), 14, 7, 0.5, 0.35);
 }
 
+/** 子彈命中敵人的小火花（傷害回饋） */
+export function hitSpark(scene: Scene, pos: Vector3) {
+  burst(scene, pos, new Color3(1, 0.95, 0.55), 6, 9, 0.3, 0.22);
+}
+
+/** 殭屍死亡的綠色噴濺 */
+export function enemyDeathBurst(scene: Scene, pos: Vector3) {
+  burst(scene, pos, new Color3(0.45, 0.8, 0.3), 16, 8, 0.55, 0.45);
+  burst(scene, pos, new Color3(0.25, 0.5, 0.2), 8, 5, 0.4, 0.5);
+}
+
 /** 飄字（增益名稱、回血量）：billboard 文字向上飄並淡出 */
 export function spawnText(scene: Scene, pos: Vector3, text: string, colorHex: string) {
   const width = 512;

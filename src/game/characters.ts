@@ -24,7 +24,7 @@ export const CHARACTERS: Character[] = [
     cost: 0,
     trait: '均衡，無明顯弱點',
     bodyColor: [0.3, 0.45, 0.6],
-    model: '/models/zombie/survivor_matt.gltf',
+    model: '/models/zombie/survivor_matt_armed.gltf',
     apply: () => {},
   },
   {
@@ -34,7 +34,7 @@ export const CHARACTERS: Character[] = [
     cost: 300,
     trait: '高速但脆皮',
     bodyColor: [0.8, 0.4, 0.5],
-    model: '/models/zombie/survivor_lis.gltf',
+    model: '/models/zombie/survivor_lis_armed.gltf',
     apply: (s) => {
       s.moveSpeed *= 1.2;
       s.maxHp -= 25;
@@ -47,7 +47,7 @@ export const CHARACTERS: Character[] = [
     cost: 300,
     trait: '高攻速、輸出爆發',
     bodyColor: [0.85, 0.7, 0.3],
-    model: '/models/zombie/survivor_sam.gltf',
+    model: '/models/zombie/survivor_sam_armed.gltf',
     apply: (s) => {
       s.fireInterval *= 0.78;
       s.maxHp -= 15;
@@ -60,10 +60,36 @@ export const CHARACTERS: Character[] = [
     cost: 200,
     trait: '拾取範圍大、經驗多',
     bodyColor: [0.5, 0.6, 0.45],
-    model: '/models/zombie/survivor_shaun.gltf',
+    model: '/models/zombie/survivor_shaun_armed.gltf',
     apply: (s) => {
       s.pickupRadius *= 1.7;
       s.xpMultiplier *= 1.2;
+    },
+  },
+  {
+    id: 'shepherd',
+    name: '德國狼犬',
+    emoji: '🐕',
+    cost: 400,
+    trait: '忠犬，移速與射程兼具',
+    bodyColor: [0.5, 0.35, 0.2],
+    model: '/models/zombie/char_shepherd.gltf',
+    apply: (s) => {
+      s.moveSpeed *= 1.15;
+      s.range *= 1.15;
+    },
+  },
+  {
+    id: 'pug',
+    name: '巴哥犬',
+    emoji: '🐶',
+    cost: 350,
+    trait: '矮胖耐打，血厚但移速慢',
+    bodyColor: [0.8, 0.7, 0.5],
+    model: '/models/zombie/char_pug.gltf',
+    apply: (s) => {
+      s.maxHp += 40;
+      s.moveSpeed *= 0.9;
     },
   },
 ];

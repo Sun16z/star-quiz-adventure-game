@@ -12,19 +12,24 @@ import {
   TransformNode,
   Mesh,
 } from '@babylonjs/core';
-import { loadModel } from './model-loader';
+import { loadModel, loadCharacter } from './model-loader';
+import type { AnimationGroup } from '@babylonjs/core';
 import { CONFIG } from './config';
 import { Input } from './input';
 import { SpatialGrid } from './spatial-grid';
 import { ZombieHorde } from './zombie-horde';
 import { WeaponSystem } from './weapon-system';
+import { ExtraWeapons } from './extra-weapons';
 import { GemSystem } from './gem-system';
-import { Boss } from './boss';
+import { Boss, BOSS_COUNT } from './boss';
+import { BossHazards } from './boss-hazards';
+import { BloodDecals } from './decals';
+import { Obstacle, resolveObstacles } from './obstacles';
 import { createRunState, rollChoices, xpForLevel, type RunState, type Upgrade } from './upgrades';
-import { levelUpBurst, bossDeathBurst, hurtBurst, spawnText } from './effects';
+import { levelUpBurst, bossDeathBurst, hurtBurst, enemyDeathBurst, spawnText } from './effects';
 import { sound } from './sound';
 
-export type GameState = 'running' | 'levelup' | 'dead' | 'paused';
+export type GameState = 'running' | 'levelup' | 'dead' | 'paused' | 'won';
 
 export interface ChoiceView {
   id: string;
@@ -48,6 +53,12 @@ export interface GameStats {
   bossActive: boolean;
   bossHp: number;
   bossMaxHp: number;
+  /** 王名稱與招式（顯示於王血條） */
+  bossName: string;
+  bossSkill: string;
+  /** 已擊敗王數 / 王總數 */
+  bossDefeated: number;
+  bossTotal: number;
   goldEarned: number;
 }
 
@@ -56,6 +67,8 @@ export interface RunResult {
   kills: number;
   time: number;
   level: number;
+  /** 是否破關（擊敗最終王） */
+  won: boolean;
 }
 
 export interface GameOptions {
@@ -94,6 +107,15 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   scene.fogEnd = 110;
 
   const camera = new ArcRotateCamera('camera', -Math.PI / 2, Math.PI / 3.2, 50, Vector3.Zero(), scene);
+  /** 開放使用者調整：拖曳旋轉、滾輪／雙指縮放（仍自動跟隨玩家目標點） */
+  camera.attachControl(canvas, true);
+  camera.lowerRadiusLimit = 25; // 最近
+  camera.upperRadiusLimit = 80; // 最遠
+  camera.lowerBetaLimit = 0.35; // 最高俯角（避免看到天空）
+  camera.upperBetaLimit = Math.PI / 2.2; // 最低俯角（避免穿到地底）
+  camera.wheelPrecision = 3; // 滾輪縮放靈敏度
+  camera.pinchPrecision = 60; // 手機雙指縮放靈敏度
+  camera.panningSensibility = 0; // 停用平移（鎖定跟隨玩家）
   const light = new HemisphericLight('light', new Vector3(0.4, 1, 0.3), scene);
   light.intensity = 0.85;
   light.groundColor = new Color3(0.25, 0.28, 0.4);
@@ -101,7 +123,9 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   sun.intensity = 0.6;
 
   createGround(scene);
-  void scatterProps(scene);
+  /** 實心障礙物（隨道具非同步載入逐步填入） */
+  const obstacles: Obstacle[] = [];
+  void scatterProps(scene, obstacles);
 
   /** 玩家根節點（移動此節點，視覺為其子物件：GLB 或 fallback 膠囊） */
   const player = new TransformNode('player', scene);
@@ -121,11 +145,18 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   playerMaterial.specularColor = Color3.Black();
   fallbackBody.material = playerMaterial;
 
+  /** 角色 idle／walk 動畫群組（移動時切換成走路） */
+  let playerWalk: AnimationGroup | undefined;
+  let playerIdle: AnimationGroup | undefined;
+  let playerMoving = false;
+
   /** 非同步載入角色模型，成功即取代 fallback（不阻塞遊戲開始） */
   if (options.characterModel) {
-    void loadModel(scene, options.characterModel, 2.4).then((node) => {
-      if (node) {
-        node.parent = player;
+    void loadCharacter(scene, options.characterModel, 2.4).then((m) => {
+      if (m) {
+        m.root.parent = player;
+        playerWalk = m.walk;
+        playerIdle = m.idle;
         fallbackBody.setEnabled(false);
       }
     });
@@ -140,10 +171,25 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   const grid = new SpatialGrid(CONFIG.gridCellSize);
   const enemies = new ZombieHorde(scene);
   const weapon = new WeaponSystem(scene);
+  const extras = new ExtraWeapons(scene);
   const gems = new GemSystem(scene);
   const boss = new Boss(scene);
+  const hazards = new BossHazards(scene);
+  const bloodDecals = new BloodDecals(scene);
+
+  /** 寶箱模型範本（非同步載入，spawn 時複製；未就緒則退回程序化方塊） */
+  let chestTemplate: TransformNode | null = null;
+  void loadModel(scene, '/models/zombie/item_chest.gltf', 1.1).then((n) => {
+    if (n) {
+      n.setEnabled(false);
+      chestTemplate = n;
+    }
+  });
   let bossTimer = 0;
+  /** 已生成的王數（最多 BOSS_COUNT） */
   let bossCount = 0;
+  /** 已擊敗的王數 */
+  let bossDefeated = 0;
 
   /** 一輪狀態 */
   let run: RunState = { ...runTemplate };
@@ -172,6 +218,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
   const contactRange = CONFIG.player.radius + CONFIG.enemy.radius + 0.2;
   const contactRange2 = contactRange * contactRange;
+  /** 障礙物推出計算用暫存 */
+  const playerResolve = { x: 0, z: 0 };
 
   /** ===== 增益（寶箱）與道具 ===== */
   type BuffType = 'rapid' | 'power' | 'speed' | 'magnet' | 'multishot';
@@ -187,8 +235,14 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
   function applyBuff(eff: RunState, type: BuffType) {
     if (type === 'rapid') eff.fireInterval *= 0.5;
-    else if (type === 'power') eff.damage *= 2;
-    else if (type === 'speed') eff.moveSpeed *= 1.5;
+    else if (type === 'power') {
+      eff.damage *= 2;
+      eff.orbitalDamage *= 2;
+      eff.auraDamage *= 2;
+      eff.lightningDamage *= 2;
+      eff.novaDamage *= 2;
+      eff.boomerangDamage *= 2;
+    } else if (type === 'speed') eff.moveSpeed *= 1.5;
     else if (type === 'magnet') eff.pickupRadius *= 3;
     else if (type === 'multishot') eff.projectileCount += 2;
   }
@@ -201,7 +255,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   }
 
   interface WorldItem {
-    mesh: Mesh;
+    /** holder 節點（旋轉/浮動此節點，視覺為其子物件） */
+    node: TransformNode;
     kind: 'chest' | 'heal';
     bornAt: number;
     baseY: number;
@@ -215,18 +270,25 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     const range = CONFIG.arenaHalf - 4;
     const x = (Math.random() * 2 - 1) * range;
     const z = (Math.random() * 2 - 1) * range;
-    const mesh = kind === 'chest' ? createChestMesh(scene) : createHealMesh(scene);
-    const baseY = kind === 'chest' ? 0.6 : 0.9;
-    mesh.position.set(x, baseY, z);
+    const node = new TransformNode(`item-${kind}`, scene);
+    if (kind === 'chest' && chestTemplate) {
+      const vis = chestTemplate.clone('chest-vis', node);
+      vis?.setEnabled(true);
+    } else {
+      const vis = kind === 'chest' ? createChestMesh(scene) : createHealMesh(scene);
+      vis.parent = node;
+    }
+    const baseY = kind === 'chest' ? 0.5 : 0.9;
+    node.position.set(x, baseY, z);
     const healPct =
       kind === 'heal'
         ? CONFIG.items.healPercents[Math.floor(Math.random() * CONFIG.items.healPercents.length)]
         : 0;
-    itemList.push({ mesh, kind, bornAt: time, baseY, healPct });
+    itemList.push({ node, kind, bornAt: time, baseY, healPct });
   }
 
   function triggerItem(item: WorldItem) {
-    const pos = item.mesh.position;
+    const pos = item.node.position;
     if (item.kind === 'chest') {
       const def = BUFFS[Math.floor(Math.random() * BUFFS.length)];
       const existing = activeBuffs.find((b) => b.type === def.type);
@@ -247,19 +309,19 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     const r2 = r * r;
     for (let i = itemList.length - 1; i >= 0; i--) {
       const item = itemList[i];
-      item.mesh.rotation.y += dt * 1.6;
-      item.mesh.position.y = item.baseY + Math.sin(time * 3 + i) * 0.18;
+      item.node.rotation.y += dt * 1.6;
+      item.node.position.y = item.baseY + Math.sin(time * 3 + i) * 0.18;
 
       if (time - item.bornAt > CONFIG.items.lifetimeSec) {
-        item.mesh.dispose();
+        item.node.dispose();
         itemList.splice(i, 1);
         continue;
       }
-      const dx = item.mesh.position.x - px;
-      const dz = item.mesh.position.z - pz;
+      const dx = item.node.position.x - px;
+      const dz = item.node.position.z - pz;
       if (dx * dx + dz * dz <= r2) {
         triggerItem(item);
-        item.mesh.dispose();
+        item.node.dispose();
         itemList.splice(i, 1);
       }
     }
@@ -280,6 +342,10 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     bossActive: false,
     bossHp: 0,
     bossMaxHp: 0,
+    bossName: '',
+    bossSkill: '',
+    bossDefeated: 0,
+    bossTotal: BOSS_COUNT,
     goldEarned: 0,
   };
 
@@ -298,6 +364,9 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     stats.bossActive = boss.active;
     stats.bossHp = Math.max(0, Math.ceil(boss.hp));
     stats.bossMaxHp = boss.maxHp;
+    stats.bossName = boss.name;
+    stats.bossSkill = boss.skillName;
+    stats.bossDefeated = bossDefeated;
     stats.goldEarned = goldEarned;
     options.onStats?.(stats);
   }
@@ -329,13 +398,38 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     }
     const eff = effectiveRun();
 
-    player.position.x = clampArena(player.position.x + dir.x * eff.moveSpeed * dt);
-    player.position.z = clampArena(player.position.z + dir.z * eff.moveSpeed * dt);
+    /** 依攝影機水平角度（alpha）將輸入轉為相機相對方向：
+     *  前（+z）= 遠離攝影機，右（+x）= 畫面右側。預設角度下為恆等。 */
+    const ca = Math.cos(camera.alpha);
+    const sa = Math.sin(camera.alpha);
+    const moveX = dir.x * -sa + dir.z * -ca;
+    const moveZ = dir.x * ca + dir.z * -sa;
+
+    player.position.x = clampArena(player.position.x + moveX * eff.moveSpeed * dt);
+    player.position.z = clampArena(player.position.z + moveZ * eff.moveSpeed * dt);
+    /** 障礙物阻擋 */
+    if (obstacles.length > 0) {
+      resolveObstacles(obstacles, player.position.x, player.position.z, CONFIG.player.radius, playerResolve);
+      player.position.x = clampArena(playerResolve.x);
+      player.position.z = clampArena(playerResolve.z);
+    }
 
     /** 面向移動方向（模型前方為 +Z），平滑轉向 */
-    if (dir.x !== 0 || dir.z !== 0) {
-      const targetAngle = Math.atan2(dir.x, dir.z);
+    const moving = dir.x !== 0 || dir.z !== 0;
+    if (moving) {
+      const targetAngle = Math.atan2(moveX, moveZ);
       player.rotation.y = lerpAngle(player.rotation.y, targetAngle, 0.25);
+    }
+    /** 移動時播放走路動畫，停下時回到 idle（僅在狀態改變時切換） */
+    if (moving !== playerMoving) {
+      playerMoving = moving;
+      if (moving) {
+        playerIdle?.stop();
+        playerWalk?.start(true);
+      } else {
+        playerWalk?.stop();
+        playerIdle?.start(true);
+      }
     }
 
     /** 跳躍：拋物線高度 */
@@ -371,25 +465,30 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
     grid.clear();
     enemies.insertAll(grid);
-    enemies.update(dt, px, pz, grid);
+    enemies.update(dt, px, pz, grid, obstacles);
 
-    /** 王：定時出現 */
+    /** 王：依序登場（共 BOSS_COUNT 隻） */
     bossTimer += dt;
-    if (!boss.active && bossTimer >= CONFIG.boss.intervalSec) {
+    if (!boss.active && bossCount < BOSS_COUNT && bossTimer >= CONFIG.boss.intervalSec) {
       bossTimer = 0;
+      boss.spawn(bossCount, px, pz);
       bossCount += 1;
-      boss.spawn(px, pz, CONFIG.boss.hpBase + CONFIG.boss.hpPerSpawn * (bossCount - 1));
     }
 
-    kills += weapon.update(dt, px, pz, enemies, boss, grid, eff, (x, z) => {
+    const onKill = (x: number, z: number) => {
       gems.spawn(x, z);
+      enemyDeathBurst(scene, new Vector3(x, CONFIG.enemy.y, z));
+      bloodDecals.spawn(x, z);
       sound.hit();
-    });
+    };
+    kills += weapon.update(dt, px, pz, enemies, boss, grid, eff, onKill);
+    kills += extras.update(dt, px, pz, enemies, boss, eff, onKill);
 
     /** 王被擊敗：噴出大量經驗 + 爆炸特效 */
     if (boss.justDied) {
       boss.justDied = false;
       kills += 1;
+      bossDefeated += 1;
       bossDeathBurst(scene, new Vector3(boss.x, 1.5, boss.z));
       sound.bossDown();
       for (let n = 0; n < CONFIG.boss.xpGems; n++) {
@@ -397,9 +496,22 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
         const d = Math.random() * 3;
         gems.spawn(boss.x + Math.cos(a) * d, boss.z + Math.sin(a) * d);
       }
+      /** 擊敗最終王 → 破關 */
+      if (bossDefeated >= BOSS_COUNT) {
+        goldEarned = Math.floor((kills * 0.6 + time) * goldMul) + 500;
+        state = 'won';
+        sound.levelUp();
+        hazards.reset();
+        pushStats();
+        options.onGameOver?.({ gold: goldEarned, kills, time, level, won: true });
+        return;
+      }
     }
 
-    boss.update(dt, px, pz);
+    boss.update(dt, px, pz, obstacles, hazards);
+    /** 王招式對玩家造成的傷害（彈幕／震波／毒池，無視騰空） */
+    const hazardDmg = hazards.update(dt, px, pz);
+    if (hazardDmg > 0) hp -= hazardDmg;
 
     /** 道具：每 15 秒生成寶箱與回血，並更新拾取 */
     chestTimer += dt;
@@ -438,11 +550,11 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     /** 騰空時可躲開接觸傷害 */
     const hurt = (touching || bossTouch) && !airborne;
     if (touching && !airborne) hp -= contactDps * dt;
-    if (bossTouch && !airborne) hp -= CONFIG.boss.contactDps * dt;
+    if (bossTouch && !airborne) hp -= boss.contactDps * dt;
 
-    /** 受擊回饋：間歇火花 */
+    /** 受擊回饋：間歇火花（含王招式傷害） */
     hurtTimer -= dt;
-    if (hurt && hurtTimer <= 0) {
+    if ((hurt || hazardDmg > 0) && hurtTimer <= 0) {
       hurtTimer = 0.35;
       hurtBurst(scene, new Vector3(px, 1, pz));
       sound.hurt();
@@ -454,7 +566,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       state = 'dead';
       sound.playerDeath();
       pushStats();
-      options.onGameOver?.({ gold: goldEarned, kills, time, level });
+      options.onGameOver?.({ gold: goldEarned, kills, time, level, won: false });
     }
 
     time += dt;
@@ -525,15 +637,22 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       vy = 0;
       grounded = true;
       jumpRequested = false;
+      playerMoving = false;
+      playerWalk?.stop();
+      playerIdle?.start(true);
       player.position.set(0, 0, 0);
       enemies.reset(0, 0);
       gems.reset();
       weapon.reset();
+      extras.reset();
       boss.reset();
+      hazards.reset();
+      bloodDecals.reset();
       bossTimer = 0;
       bossCount = 0;
+      bossDefeated = 0;
       activeBuffs.length = 0;
-      for (const it of itemList) it.mesh.dispose();
+      for (const it of itemList) it.node.dispose();
       itemList.length = 0;
       chestTimer = 0;
       healTimer = 0;
@@ -597,23 +716,44 @@ function createGround(scene: Scene) {
   return ground;
 }
 
-/** 散布殭屍城鎮道具（油桶、貨櫃、三角錐、水塔），提供移動參考與氛圍 */
-async function scatterProps(scene: Scene) {
+/**
+ * 散布殭屍城鎮道具（油桶、貨櫃、三角錐、水塔），提供移動參考與氛圍。
+ * solid 者登記為障礙物（半徑），阻擋玩家與怪物；三角錐為純裝飾。
+ */
+async function scatterProps(scene: Scene, obstacles: Obstacle[]) {
   const half = CONFIG.arenaHalf;
-  const props = [
-    { path: '/models/zombie/barrel.gltf', height: 1.4, count: 12 },
-    { path: '/models/zombie/container.gltf', height: 3, count: 5 },
-    { path: '/models/zombie/cone.gltf', height: 0.9, count: 12 },
-    { path: '/models/zombie/watertower.gltf', height: 8, count: 2 },
+  const props: { path: string; height: number; count: number; solid?: number }[] = [
+    { path: '/models/zombie/barrel.gltf', height: 1.4, count: 10, solid: 0.7 },
+    { path: '/models/zombie/container.gltf', height: 3, count: 4, solid: 2.2 },
+    { path: '/models/zombie/prop_container_red.gltf', height: 3, count: 3, solid: 2.2 },
+    { path: '/models/zombie/cone.gltf', height: 0.9, count: 10 },
+    { path: '/models/zombie/watertower.gltf', height: 8, count: 2, solid: 1.8 },
+    { path: '/models/zombie/prop_truck.gltf', height: 3.2, count: 3, solid: 3 },
+    { path: '/models/zombie/prop_couch.gltf', height: 1, count: 5, solid: 1.3 },
+    { path: '/models/zombie/prop_hydrant.gltf', height: 1.1, count: 6, solid: 0.5 },
+    { path: '/models/zombie/prop_barrier.gltf', height: 1, count: 7, solid: 1 },
+    { path: '/models/zombie/prop_wheels.gltf', height: 1, count: 5, solid: 0.7 },
+    { path: '/models/zombie/prop_pallet.gltf', height: 0.4, count: 8 },
+    { path: '/models/zombie/prop_trashbag.gltf', height: 0.8, count: 10 },
+    { path: '/models/zombie/prop_cinderblock.gltf', height: 0.4, count: 8 },
   ];
 
   for (const p of props) {
     const base = await loadModel(scene, p.path, p.height);
     if (!base) continue;
     const place = (node: { position: { x: number; z: number }; rotation: { y: number } }) => {
-      node.position.x = (Math.random() * 2 - 1) * half;
-      node.position.z = (Math.random() * 2 - 1) * half;
+      let x = 0;
+      let z = 0;
+      /** 避開玩家出生點（半徑 10 內）重試幾次 */
+      for (let tries = 0; tries < 8; tries++) {
+        x = (Math.random() * 2 - 1) * half;
+        z = (Math.random() * 2 - 1) * half;
+        if (x * x + z * z > 100) break;
+      }
+      node.position.x = x;
+      node.position.z = z;
       node.rotation.y = Math.random() * Math.PI * 2;
+      if (p.solid) obstacles.push({ x, z, radius: p.solid });
     };
     place(base);
     for (let i = 1; i < p.count; i++) {

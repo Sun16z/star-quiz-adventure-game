@@ -2,6 +2,7 @@ import { Scene, TransformNode, SceneLoader, AnimationGroup } from '@babylonjs/co
 import '@babylonjs/loaders';
 import { CONFIG } from './config';
 import { SpatialGrid } from './spatial-grid';
+import { Obstacle, resolveObstacles } from './obstacles';
 
 interface ZombieType {
   path: string;
@@ -164,11 +165,12 @@ export class ZombieHorde {
     return false;
   }
 
-  update(dt: number, playerX: number, playerZ: number, grid: SpatialGrid) {
+  update(dt: number, playerX: number, playerZ: number, grid: SpatialGrid, obstacles: Obstacle[]) {
     if (!this.ready) return;
-    const { separationRadius, separationForce } = CONFIG.enemy;
+    const { separationRadius, separationForce, radius } = CONFIG.enemy;
     const sepR2 = separationRadius * separationRadius;
     const half = CONFIG.arenaHalf;
+    const scratch = { x: 0, z: 0 };
 
     for (let i = 0; i < this.count; i++) {
       const x = this.posX[i];
@@ -202,6 +204,13 @@ export class ZombieHorde {
       else if (nx < -half) nx = -half;
       if (nz > half) nz = half;
       else if (nz < -half) nz = -half;
+
+      /** 障礙物阻擋 */
+      if (obstacles.length > 0) {
+        resolveObstacles(obstacles, nx, nz, radius, scratch);
+        nx = scratch.x;
+        nz = scratch.z;
+      }
 
       this.posX[i] = nx;
       this.posZ[i] = nz;

@@ -43,7 +43,7 @@ export const CONFIG = {
 
   /** 王：定時出現的巨型敵人 */
   boss: {
-    intervalSec: 55,
+    intervalSec: 30,
     hpBase: 350,
     hpPerSpawn: 280,
     speed: 6,
