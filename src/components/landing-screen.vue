@@ -14,6 +14,18 @@
         <p class="mt-3 text-base font-bold tracking-wide text-white/70 sm:text-lg">
           在無盡殭屍潮中倖存・3D 倖存者類 roguelite
         </p>
+        <!-- 即時在線人數 -->
+        <div
+          v-if="online !== null"
+          class="mt-4 inline-flex items-center gap-2 rounded-full bg-black/30 px-4 py-1.5 text-sm font-bold backdrop-blur-md ring-1 ring-lime-400/20"
+        >
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75"></span>
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-lime-400"></span>
+          </span>
+          <span class="text-lime-300">{{ online }}</span>
+          <span class="text-white/60">人正在遊玩</span>
+        </div>
       </div>
 
       <!-- 暱稱（必填才能開始） -->
@@ -42,6 +54,7 @@
         </button>
         <button class="portal-btn" @click="emit('leaderboard')">🏆 排行榜</button>
         <button class="portal-btn" @click="emit('bestiary')">🧟 怪物圖鑑</button>
+        <button class="portal-btn" @click="emit('messages')">💬 留言板</button>
       </div>
 
       <!-- 累積統計（本機） -->
@@ -64,15 +77,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import BackgroundPolygons from './background-polygons.vue';
 import { loadStats, getPlayerName, setPlayerName, type GlobalStats } from '../game/leaderboard';
-import { fetchStats } from '../game/api';
+import { fetchStats, fetchOnline } from '../game/api';
 
 const emit = defineEmits<{
   (e: 'start'): void;
   (e: 'leaderboard'): void;
   (e: 'bestiary'): void;
+  (e: 'messages'): void;
 }>();
 
 const name = ref(getPlayerName());
@@ -89,9 +103,23 @@ function onStart() {
 
 /** 先顯示本機統計，抓到全球就覆蓋 */
 const stats = reactive<GlobalStats>(loadStats());
+
+/** 目前遊玩人數（每 20 秒輪詢；失敗則維持上次值/隱藏） */
+const online = ref<number | null>(null);
+let onlineTimer: number | undefined;
+async function refreshOnline() {
+  const n = await fetchOnline();
+  if (n !== null) online.value = n;
+}
+
 onMounted(async () => {
+  void refreshOnline();
+  onlineTimer = window.setInterval(refreshOnline, 20000);
   const global = await fetchStats();
   if (global) Object.assign(stats, global);
+});
+onBeforeUnmount(() => {
+  if (onlineTimer !== undefined) clearInterval(onlineTimer);
 });
 
 const timeText = computed(() => {

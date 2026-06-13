@@ -165,6 +165,7 @@ import {
   type UpgradeStatusView,
 } from '../game/game';
 import { sound } from '../game/sound';
+import { sendHeartbeat } from '../game/api';
 import type { RunState } from '../game/upgrades';
 import type { Difficulty } from '../game/difficulty';
 import Hud from './hud.vue';
@@ -251,9 +252,17 @@ onMounted(() => {
     onGameOver: (r) => emit('gameover', r),
   });
   game.setMuted(muted.value);
+
+  /** 在線心跳：遊戲進行期間每 20 秒上報一次（首頁據此顯示遊玩人數） */
+  void sendHeartbeat();
+  heartbeatTimer = window.setInterval(() => void sendHeartbeat(), 20000);
 });
 
-onBeforeUnmount(() => game?.dispose());
+let heartbeatTimer: number | undefined;
+onBeforeUnmount(() => {
+  if (heartbeatTimer !== undefined) clearInterval(heartbeatTimer);
+  game?.dispose();
+});
 
 function onJoyMove(dir: { x: number; z: number }) {
   game?.setJoystick(dir.x, dir.z);

@@ -23,3 +23,20 @@ CREATE TABLE IF NOT EXISTS stats (
   total_kills INTEGER NOT NULL DEFAULT 0
 );
 INSERT OR IGNORE INTO stats (id, plays, total_time, total_kills) VALUES (1, 0, 0, 0);
+
+-- 即時在線（心跳）：遊戲進行中每約 20 秒上報一次；online 端點統計近 45 秒活躍人數
+CREATE TABLE IF NOT EXISTS presence (
+  device_id TEXT PRIMARY KEY,
+  last_seen INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_presence_seen ON presence (last_seen);
+
+-- 留言板：全球留言
+CREATE TABLE IF NOT EXISTS messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  text TEXT,
+  device_id TEXT,
+  created_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_messages_id ON messages (id DESC);

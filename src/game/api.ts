@@ -49,6 +49,64 @@ export async function fetchLeaderboard(limit = 10, difficulty?: string): Promise
   }
 }
 
+/** 上報心跳（遊戲進行中定期呼叫，標記在線）；失敗忽略 */
+export async function sendHeartbeat(): Promise<void> {
+  try {
+    await fetch(`${BASE}/heartbeat`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ deviceId: deviceId() }),
+    });
+  } catch {
+    /* 離線忽略 */
+  }
+}
+
+/** 取目前線上遊玩人數；失敗回傳 null */
+export async function fetchOnline(): Promise<number | null> {
+  try {
+    const res = await fetch(`${BASE}/online`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { online: number };
+    return data.online ?? 0;
+  } catch {
+    return null;
+  }
+}
+
+/** 留言板留言 */
+export interface Message {
+  id: number;
+  name: string;
+  text: string;
+  at: number;
+}
+
+/** 取最新留言；失敗回傳 null */
+export async function fetchMessages(): Promise<Message[] | null> {
+  try {
+    const res = await fetch(`${BASE}/messages`);
+    if (!res.ok) return null;
+    return (await res.json()) as Message[];
+  } catch {
+    return null;
+  }
+}
+
+/** 送出一則留言；成功回傳 true */
+export async function postMessage(name: string, text: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/messages`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, text, deviceId: deviceId() }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** 取全球累計統計；失敗回傳 null */
 export async function fetchStats(): Promise<GlobalStats | null> {
   try {
