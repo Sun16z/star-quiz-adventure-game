@@ -38,7 +38,7 @@
 
       <!-- 題庫 -->
       <div>
-        <div class="mb-2 text-lg font-black">選擇題庫</div>
+        <div class="mb-2 text-lg font-black">選擇年級學期</div>
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           <button
             v-for="g in questionGrades"
@@ -52,6 +52,46 @@
             <div class="mt-1 text-xs font-black leading-tight">{{ g.label }}</div>
             <div class="mt-1 text-[0.68rem] leading-snug text-white/60">{{ g.desc }}</div>
           </button>
+        </div>
+
+        <div class="mt-4 grid gap-3 lg:grid-cols-[1fr_0.8fr]">
+          <div>
+            <div class="mb-2 text-sm font-black text-white/75">選擇科目</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                v-for="subject in questionSubjects"
+                :key="subject.id"
+                type="button"
+                class="min-h-20 rounded-xl p-3 text-left ring-2 transition active:scale-[0.98]"
+                :class="quizSubject === subject.id ? 'bg-cyan-300/20 ring-cyan-200' : 'bg-white/5 ring-white/10 hover:ring-white/30'"
+                @click="selectQuizSubject(subject.id)"
+              >
+                <div class="text-2xl">{{ subject.icon }}</div>
+                <div class="mt-1 text-base font-black">{{ subject.label }}</div>
+                <div class="text-[0.68rem] leading-snug text-white/55">{{ subject.desc }}</div>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="mb-2 text-sm font-black text-white/75">選擇考次</div>
+            <div class="grid grid-cols-2 gap-2 lg:grid-cols-1">
+              <button
+                v-for="exam in questionExams"
+                :key="exam.id"
+                type="button"
+                class="min-h-20 rounded-xl p-3 text-left ring-2 transition active:scale-[0.98]"
+                :class="quizExam === exam.id ? 'bg-amber-300/20 ring-amber-200' : 'bg-white/5 ring-white/10 hover:ring-white/30'"
+                @click="selectQuizExam(exam.id)"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="text-2xl">{{ exam.icon }}</span>
+                  <span class="text-base font-black">{{ exam.label }}</span>
+                </div>
+                <div class="mt-1 text-[0.68rem] leading-snug text-white/55">{{ exam.desc }}</div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -123,9 +163,9 @@
       <!-- 開始 -->
       <button
         class="mt-2 w-full rounded-full bg-amber-400 py-4 text-2xl font-black text-black shadow-lg transition hover:bg-amber-300 active:scale-95"
-        @click="emit('start', selectedId, quizGrade)"
+        @click="emit('start', selectedId, quizSelection)"
       >
-        ▶ 開始（{{ selectedName }}・{{ selectedQuizGrade.shortLabel }}）
+        ▶ 開始（{{ selectedName }}・{{ selectedQuizLabel }}）
       </button>
 
     </div>
@@ -139,15 +179,23 @@ import { PERMA, permaCost, type MetaData, type PermaUpgrade } from '../game/meta
 import { setupCharacterPreview, type PreviewHandle } from '../game/character-previews';
 import {
   DEFAULT_QUESTION_GRADE,
+  DEFAULT_QUIZ_SELECTION,
+  QUESTION_EXAMS,
   QUESTION_GRADES,
-  getQuestionGradeInfo,
+  QUESTION_SUBJECTS,
+  getQuizSelectionLabel,
+  isQuestionExam,
   isQuestionGrade,
+  isQuestionSubject,
+  type QuestionExam,
   type QuestionGrade,
+  type QuestionSubject,
+  type QuizSelection,
 } from '../game/question-bank';
 
 const props = defineProps<{ meta: MetaData }>();
 const emit = defineEmits<{
-  (e: 'start', characterId: string, quizGrade: QuestionGrade): void;
+  (e: 'start', characterId: string, quizSelection: QuizSelection): void;
   (e: 'buy', permaId: string): void;
   (e: 'unlock', characterId: string): void;
   (e: 'add-gold', amount: number): void;
@@ -158,14 +206,37 @@ const characters = CHARACTERS;
 const perma = PERMA;
 const selectedId = ref('matt');
 const QUIZ_GRADE_KEY = 'animal-survivors:quiz-grade';
+const QUIZ_SUBJECT_KEY = 'animal-survivors:quiz-subject';
+const QUIZ_EXAM_KEY = 'animal-survivors:quiz-exam';
 const savedQuizGrade = localStorage.getItem(QUIZ_GRADE_KEY) ?? '';
+const savedQuizSubject = localStorage.getItem(QUIZ_SUBJECT_KEY) ?? '';
+const savedQuizExam = localStorage.getItem(QUIZ_EXAM_KEY) ?? '';
 const quizGrade = ref<QuestionGrade>(isQuestionGrade(savedQuizGrade) ? savedQuizGrade : DEFAULT_QUESTION_GRADE);
+const quizSubject = ref<QuestionSubject>(isQuestionSubject(savedQuizSubject) ? savedQuizSubject : DEFAULT_QUIZ_SELECTION.subject);
+const quizExam = ref<QuestionExam>(isQuestionExam(savedQuizExam) ? savedQuizExam : DEFAULT_QUIZ_SELECTION.exam);
 const questionGrades = QUESTION_GRADES;
-const selectedQuizGrade = computed(() => getQuestionGradeInfo(quizGrade.value));
+const questionSubjects = QUESTION_SUBJECTS;
+const questionExams = QUESTION_EXAMS;
+const quizSelection = computed<QuizSelection>(() => ({
+  grade: quizGrade.value,
+  subject: quizSubject.value,
+  exam: quizExam.value,
+}));
+const selectedQuizLabel = computed(() => getQuizSelectionLabel(quizSelection.value));
 
 function selectQuizGrade(id: QuestionGrade) {
   quizGrade.value = id;
   localStorage.setItem(QUIZ_GRADE_KEY, id);
+}
+
+function selectQuizSubject(id: QuestionSubject) {
+  quizSubject.value = id;
+  localStorage.setItem(QUIZ_SUBJECT_KEY, id);
+}
+
+function selectQuizExam(id: QuestionExam) {
+  quizExam.value = id;
+  localStorage.setItem(QUIZ_EXAM_KEY, id);
 }
 
 /** 角色即時 3D 預覽：每張卡一個引擎，播 idle 並旋轉；就緒前以 emoji 替代 */

@@ -27,7 +27,7 @@
     :start-run-state="startRun"
     :gold-multiplier="goldMul"
     :difficulty="difficulty"
-    :quiz-grade="quizGrade"
+    :quiz-selection="quizSelection"
     @gameover="onGameOver"
     @menu="screen = 'landing'"
   />
@@ -47,7 +47,7 @@ import { getCharacter } from './game/characters';
 import type { PrincessStyle } from './game/princess-model';
 import { addRecord, recordStats, getPlayerName } from './game/leaderboard';
 import { getDifficulty, type Difficulty } from './game/difficulty';
-import { DEFAULT_QUESTION_GRADE, type QuestionGrade } from './game/question-bank';
+import { DEFAULT_QUIZ_SELECTION, type QuizSelection } from './game/question-bank';
 import { submitRun } from './game/api';
 import type { RunState } from './game/upgrades';
 import type { RunResult } from './game/game';
@@ -60,7 +60,7 @@ const characterColor = ref<[number, number, number]>([1, 1, 1]);
 const characterModel = ref<string>();
 const princessStyle = ref<PrincessStyle>('star');
 const goldMul = ref(1);
-const quizGrade = ref<QuestionGrade>(DEFAULT_QUESTION_GRADE);
+const quizSelection = ref<QuizSelection>(DEFAULT_QUIZ_SELECTION);
 let lastCharId = 'matt';
 
 const DIFF_KEY = 'animal-survivors:difficulty';
@@ -71,10 +71,10 @@ function onSelectDifficulty(id: string) {
   screen.value = 'menu';
 }
 
-function onStart(charId: string, selectedQuizGrade: QuestionGrade) {
+function onStart(charId: string, selectedQuizSelection: QuizSelection) {
   const ch = getCharacter(charId);
   lastCharId = charId;
-  quizGrade.value = selectedQuizGrade;
+  quizSelection.value = selectedQuizSelection;
   startRun.value = computeStartRunState(charId, meta.perma);
   characterColor.value = ch.bodyColor;
   characterModel.value = ch.model;

@@ -8,7 +8,7 @@
           {{ activeQuestion ? '看清楚題目再選答案，答對後會自動回到戰場。' : '先挑想要的寶物，再完成一題小挑戰。' }}
         </div>
         <div class="mt-2 inline-flex rounded-full bg-lime-300/15 px-3 py-1 text-xs font-black text-lime-200 ring-1 ring-lime-200/20">
-          {{ gradeInfo.label }}題庫
+          {{ quizSelectionLabel }}題庫
         </div>
       </div>
 
@@ -42,7 +42,7 @@
         <div class="rounded-2xl bg-slate-950/45 p-4 ring-1 ring-white/10">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="rounded-full bg-cyan-300 px-3 py-1 text-xs font-black text-slate-950">{{ activeQuestion.subject }}</span>
-            <span class="text-xs font-bold text-white/45">{{ gradeInfo.shortLabel }}・{{ activeQuestion.id }}</span>
+            <span class="text-xs font-bold text-white/45">{{ gradeInfo.shortLabel }}・{{ examInfo.label }}・{{ activeQuestion.skill ?? activeQuestion.id }}</span>
           </div>
           <div class="text-xl font-black leading-relaxed">{{ activeQuestion.prompt }}</div>
         </div>
@@ -103,13 +103,15 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import type { ChoiceView } from '../game/game';
 import {
   getQuestionGradeInfo,
+  getQuestionExamInfo,
+  getQuizSelectionLabel,
   rollQuestion,
-  type QuestionGrade,
+  type QuizSelection,
   type QuizQuestion,
 } from '../game/question-bank';
 import { sound } from '../game/sound';
 
-const props = defineProps<{ level: number; choices: ChoiceView[]; quizGrade: QuestionGrade }>();
+const props = defineProps<{ level: number; choices: ChoiceView[]; quizSelection: QuizSelection }>();
 const emit = defineEmits<{ (e: 'choose', index: number): void }>();
 
 const optionLabels = ['A', 'B', 'C', 'D'];
@@ -119,14 +121,16 @@ const selectedAnswerIndex = ref<number | null>(null);
 const feedback = ref<'idle' | 'wrong' | 'correct'>('idle');
 let correctTimer: number | undefined;
 
-const gradeInfo = computed(() => getQuestionGradeInfo(props.quizGrade));
+const gradeInfo = computed(() => getQuestionGradeInfo(props.quizSelection.grade));
+const examInfo = computed(() => getQuestionExamInfo(props.quizSelection.exam));
+const quizSelectionLabel = computed(() => getQuizSelectionLabel(props.quizSelection));
 const selectedChoice = computed(() => {
   if (selectedChoiceIndex.value === null) return undefined;
   return props.choices[selectedChoiceIndex.value];
 });
 
 watch(
-  () => [props.level, props.quizGrade],
+  () => [props.level, props.quizSelection.grade, props.quizSelection.subject, props.quizSelection.exam],
   resetQuestion,
 );
 
@@ -137,7 +141,7 @@ onBeforeUnmount(() => {
 function startQuestion(index: number) {
   sound.uiTap();
   selectedChoiceIndex.value = index;
-  activeQuestion.value = rollQuestion(props.quizGrade);
+  activeQuestion.value = rollQuestion(props.quizSelection);
   selectedAnswerIndex.value = null;
   feedback.value = 'idle';
 }
@@ -160,7 +164,7 @@ function answerQuestion(index: number) {
 
 function retryQuestion() {
   sound.uiTap();
-  activeQuestion.value = rollQuestion(props.quizGrade);
+  activeQuestion.value = rollQuestion(props.quizSelection);
   selectedAnswerIndex.value = null;
   feedback.value = 'idle';
 }

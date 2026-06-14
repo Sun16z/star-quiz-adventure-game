@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "generate:questions": "node scripts/generate-elementary-bank.mjs",
+    "check:questions": "node scripts/check-elementary-bank.mjs",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --host"
   },

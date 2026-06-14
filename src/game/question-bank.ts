@@ -1,20 +1,9 @@
 import { GENERATED_QUESTION_BANK } from './generated-question-bank';
 import { GRADE4B_QUESTION_BANK } from './grade4b-question-bank';
-import { KANGXUAN_QUESTION_BANK } from './kangxuan-question-bank';
+import { ELEMENTARY_KANGXUAN_DATASET, ELEMENTARY_KANGXUAN_QUESTIONS } from '../question-bank/elementary-kangxuan';
+import type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection } from '../question-bank/schema';
 
-export type QuestionGrade =
-  | 'grade1a'
-  | 'grade1b'
-  | 'grade2a'
-  | 'grade2b'
-  | 'grade3a'
-  | 'grade3b'
-  | 'grade4a'
-  | 'grade4b'
-  | 'grade5a'
-  | 'grade5b'
-  | 'grade6a'
-  | 'grade6b';
+export type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection } from '../question-bank/schema';
 
 export interface QuestionGradeInfo {
   id: QuestionGrade;
@@ -28,100 +17,42 @@ export interface QuizQuestion {
   id: string;
   grade: QuestionGrade;
   subject: string;
+  exam?: QuestionExam;
+  examLabel?: string;
+  publisher?: string;
+  skill?: string;
+  difficulty?: number;
   prompt: string;
   options: readonly [string, string, string, string];
   answerIndex: number;
   explanation: string;
 }
 
-export const QUESTION_GRADES: QuestionGradeInfo[] = [
-  {
-    id: 'grade1a',
-    shortLabel: '一上',
-    label: '康軒一年級上學期',
-    desc: '國語、數學、英語、生活、健體',
-    subjects: ['國語', '數學', '英語', '生活', '健體'],
-  },
-  {
-    id: 'grade1b',
-    shortLabel: '一下',
-    label: '康軒一年級下學期',
-    desc: '國語、數學、英語、生活、健體',
-    subjects: ['國語', '數學', '英語', '生活', '健體'],
-  },
-  {
-    id: 'grade2a',
-    shortLabel: '二上',
-    label: '康軒二年級上學期',
-    desc: '國語、數學、英語、生活、健體',
-    subjects: ['國語', '數學', '英語', '生活', '健體'],
-  },
-  {
-    id: 'grade2b',
-    shortLabel: '二下',
-    label: '康軒二年級下學期',
-    desc: '國語、數學、生活、英語、自然觀察',
-    subjects: ['國語', '數學', '生活', '英語', '自然'],
-  },
-  {
-    id: 'grade3a',
-    shortLabel: '三上',
-    label: '康軒三年級上學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
-  {
-    id: 'grade3b',
-    shortLabel: '三下',
-    label: '康軒三年級下學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
-  {
-    id: 'grade4a',
-    shortLabel: '四上',
-    label: '康軒四年級上學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
-  {
-    id: 'grade4b',
-    shortLabel: '四下',
-    label: '康軒四年級下學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
-  {
-    id: 'grade5a',
-    shortLabel: '五上',
-    label: '康軒五年級上學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
-  {
-    id: 'grade5b',
-    shortLabel: '五下',
-    label: '康軒五年級下學期',
-    desc: '國語、數學、自然、社會、英語',
-    subjects: ['國語', '數學', '自然', '社會', '英語'],
-  },
-  {
-    id: 'grade6a',
-    shortLabel: '六上',
-    label: '康軒六年級上學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
-  {
-    id: 'grade6b',
-    shortLabel: '六下',
-    label: '康軒六年級下學期',
-    desc: '國語、數學、英語、自然、社會、健體',
-    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
-  },
+export const QUESTION_SUBJECTS: Array<{ id: QuestionSubject; label: string; desc: string; icon: string }> = [
+  { id: '國語', label: '國語', desc: '字詞、句型、閱讀、寫作', icon: '📖' },
+  { id: '英語', label: '英語', desc: '單字、句型、閱讀理解', icon: '🔤' },
+  { id: '數學', label: '數學', desc: '計算、圖形、應用題', icon: '➗' },
 ];
 
+export const QUESTION_EXAMS: Array<{ id: QuestionExam; label: string; desc: string; icon: string }> = [
+  { id: 'midterm', label: '期中考', desc: '前半學期重點', icon: '📝' },
+  { id: 'final', label: '期末考', desc: '後半學期與總複習', icon: '🏁' },
+];
+
+export const QUESTION_GRADES: QuestionGradeInfo[] = ELEMENTARY_KANGXUAN_DATASET.grades.map((grade) => ({
+  id: grade.id,
+  shortLabel: `${toChineseNumber(grade.grade)}${grade.semester === 'a' ? '上' : '下'}`,
+  label: `康軒${toChineseNumber(grade.grade)}年級${grade.semester === 'a' ? '上學期' : '下學期'}`,
+  desc: '國語、英語、數學｜期中/期末',
+  subjects: ['國語', '英語', '數學'],
+}));
+
 export const DEFAULT_QUESTION_GRADE: QuestionGrade = 'grade2b';
+export const DEFAULT_QUIZ_SELECTION: QuizSelection = {
+  grade: DEFAULT_QUESTION_GRADE,
+  subject: '國語',
+  exam: 'final',
+};
 
 const BASE_QUESTION_BANK: QuizQuestion[] = [
   {
@@ -343,7 +274,7 @@ const BASE_QUESTION_BANK: QuizQuestion[] = [
 ];
 
 export const QUESTION_BANK: QuizQuestion[] = [
-  ...KANGXUAN_QUESTION_BANK,
+  ...ELEMENTARY_KANGXUAN_QUESTIONS,
   ...BASE_QUESTION_BANK,
   ...GENERATED_QUESTION_BANK,
   ...GRADE4B_QUESTION_BANK,
@@ -357,35 +288,59 @@ export function isQuestionGrade(value: string): value is QuestionGrade {
   return QUESTION_GRADES.some((g) => g.id === value);
 }
 
-const RECENT_QUESTION_LIMIT = 10;
-const RECENT_SUBJECT_LIMIT = 2;
-const recentQuestionIds = new Map<QuestionGrade, string[]>();
-const recentSubjects = new Map<QuestionGrade, string[]>();
+export function isQuestionSubject(value: string): value is QuestionSubject {
+  return QUESTION_SUBJECTS.some((subject) => subject.id === value);
+}
 
-export function rollQuestion(grade: QuestionGrade): QuizQuestion {
-  const pool = QUESTION_BANK.filter((q) => q.grade === grade);
-  const usable = pool.length > 0 ? pool : QUESTION_BANK;
-  const recentIds = recentQuestionIds.get(grade) ?? [];
-  const subjects = recentSubjects.get(grade) ?? [];
+export function isQuestionExam(value: string): value is QuestionExam {
+  return QUESTION_EXAMS.some((exam) => exam.id === value);
+}
+
+export function getQuestionExamInfo(exam: QuestionExam) {
+  return QUESTION_EXAMS.find((item) => item.id === exam) ?? QUESTION_EXAMS[0];
+}
+
+export function normalizeQuizSelection(selection?: Partial<QuizSelection>): QuizSelection {
+  return {
+    grade: selection?.grade && isQuestionGrade(selection.grade) ? selection.grade : DEFAULT_QUIZ_SELECTION.grade,
+    subject: selection?.subject && isQuestionSubject(selection.subject) ? selection.subject : DEFAULT_QUIZ_SELECTION.subject,
+    exam: selection?.exam && isQuestionExam(selection.exam) ? selection.exam : DEFAULT_QUIZ_SELECTION.exam,
+  };
+}
+
+export function getQuizSelectionLabel(selection: QuizSelection): string {
+  const normalized = normalizeQuizSelection(selection);
+  const gradeInfo = getQuestionGradeInfo(normalized.grade);
+  const examInfo = getQuestionExamInfo(normalized.exam);
+  return `${gradeInfo.shortLabel}・${normalized.subject}・${examInfo.label}`;
+}
+
+const RECENT_QUESTION_LIMIT = 10;
+const recentQuestionIds = new Map<string, string[]>();
+
+export function rollQuestion(selectionOrGrade: QuizSelection | QuestionGrade): QuizQuestion {
+  const selection = typeof selectionOrGrade === 'string'
+    ? normalizeQuizSelection({ grade: selectionOrGrade })
+    : normalizeQuizSelection(selectionOrGrade);
+  const selectionKey = `${selection.grade}:${selection.subject}:${selection.exam}`;
+  const strictPool = QUESTION_BANK.filter(
+    (q) => q.grade === selection.grade && q.subject === selection.subject && q.exam === selection.exam,
+  );
+  const subjectPool = QUESTION_BANK.filter((q) => q.grade === selection.grade && q.subject === selection.subject);
+  const gradePool = QUESTION_BANK.filter((q) => q.grade === selection.grade);
+  const usable = strictPool.length > 0 ? strictPool : subjectPool.length > 0 ? subjectPool : gradePool.length > 0 ? gradePool : QUESTION_BANK;
+  const recentIds = recentQuestionIds.get(selectionKey) ?? [];
   let candidates = usable.filter((q) => !recentIds.includes(q.id));
   if (candidates.length === 0) candidates = usable;
 
-  const variedSubjects = candidates.filter((q) => !subjects.includes(q.subject));
-  if (variedSubjects.length >= 4 || (variedSubjects.length > 0 && candidates.length < 4)) {
-    candidates = variedSubjects;
-  }
-
   const question = candidates[Math.floor(Math.random() * candidates.length)];
-  rememberQuestion(grade, question);
+  rememberQuestion(selectionKey, question);
   return shuffleQuestionOptions(question);
 }
 
-function rememberQuestion(grade: QuestionGrade, question: QuizQuestion) {
-  const ids = [question.id, ...(recentQuestionIds.get(grade) ?? [])].slice(0, RECENT_QUESTION_LIMIT);
-  recentQuestionIds.set(grade, ids);
-
-  const subjects = [question.subject, ...(recentSubjects.get(grade) ?? [])].slice(0, RECENT_SUBJECT_LIMIT);
-  recentSubjects.set(grade, subjects);
+function rememberQuestion(selectionKey: string, question: QuizQuestion) {
+  const ids = [question.id, ...(recentQuestionIds.get(selectionKey) ?? [])].slice(0, RECENT_QUESTION_LIMIT);
+  recentQuestionIds.set(selectionKey, ids);
 }
 
 function shuffleQuestionOptions(question: QuizQuestion): QuizQuestion {
@@ -400,4 +355,8 @@ function shuffleQuestionOptions(question: QuizQuestion): QuizQuestion {
     options,
     answerIndex: order.indexOf(question.answerIndex),
   };
+}
+
+function toChineseNumber(value: number): string {
+  return ['零', '一', '二', '三', '四', '五', '六'][value] ?? String(value);
 }

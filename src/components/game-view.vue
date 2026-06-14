@@ -136,7 +136,7 @@
       v-if="stats.state === 'levelup'"
       :level="stats.level"
       :choices="stats.choices"
-      :quiz-grade="quizGrade"
+      :quiz-selection="quizSelection"
       @choose="onChoose"
     />
 
@@ -177,7 +177,7 @@ import { sendHeartbeat } from '../game/api';
 import { QUALITIES, type QualityId } from '../game/quality';
 import type { RunState } from '../game/upgrades';
 import type { Difficulty } from '../game/difficulty';
-import type { QuestionGrade } from '../game/question-bank';
+import type { QuizSelection } from '../game/question-bank';
 import type { PrincessStyle } from '../game/princess-model';
 import Hud from './hud.vue';
 import Joystick from './joystick.vue';
@@ -193,7 +193,7 @@ const props = defineProps<{
   startRunState?: RunState;
   goldMultiplier: number;
   difficulty?: Difficulty;
-  quizGrade: QuestionGrade;
+  quizSelection: QuizSelection;
 }>();
 const emit = defineEmits<{
   (e: 'gameover', result: RunResult): void;
