@@ -9,10 +9,10 @@
           class="text-6xl font-black tracking-widest sm:text-8xl"
           style="color: #c6ff7a; paint-order: stroke fill; -webkit-text-stroke: 6px #14210f; text-shadow: 0 6px 0 rgba(0,0,0,0.35)"
         >
-          殭屍大逃殺
+          星願問答大冒險
         </h1>
         <p class="mt-3 text-base font-bold tracking-wide text-white/70 sm:text-lg">
-          在無盡殭屍潮中倖存・3D 倖存者類 roguelite
+          公主魔法 × 可愛小怪 × 國小題庫闖關
         </p>
         <!-- 即時在線人數 -->
         <div
@@ -53,7 +53,7 @@
           ▶ 遊戲開始
         </button>
         <button class="portal-btn" @click="emit('leaderboard')">🏆 排行榜</button>
-        <button class="portal-btn" @click="emit('bestiary')">🧟 怪物圖鑑</button>
+        <button class="portal-btn" @click="emit('bestiary')">🎀 夢境圖鑑</button>
         <button class="portal-btn" @click="emit('messages')">💬 留言板</button>
       </div>
 
@@ -69,7 +69,7 @@
         </div>
         <div class="rounded-2xl bg-black/30 px-4 py-2 text-center backdrop-blur-md sm:px-6">
           <div class="text-2xl font-black text-lime-300 sm:text-3xl">{{ stats.totalKills }}</div>
-          <div class="text-xs text-white/55">累積擊殺</div>
+          <div class="text-xs text-white/55">累積擊退</div>
         </div>
       </div>
     </div>

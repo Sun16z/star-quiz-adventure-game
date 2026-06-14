@@ -89,10 +89,10 @@ export function hitSpark(scene: Scene, pos: Vector3) {
   burst(scene, pos, new Color3(1, 0.95, 0.55), 6, 9, 0.3, 0.22);
 }
 
-/** 殭屍死亡的綠色噴濺 */
+/** 小怪被擊退時的糖果色星光 */
 export function enemyDeathBurst(scene: Scene, pos: Vector3) {
-  burst(scene, pos, new Color3(0.45, 0.8, 0.3), 16, 8, 0.55, 0.45);
-  burst(scene, pos, new Color3(0.25, 0.5, 0.2), 8, 5, 0.4, 0.5);
+  burst(scene, pos, new Color3(1, 0.62, 0.82), 16, 8, 0.55, 0.45);
+  burst(scene, pos, new Color3(0.5, 0.85, 1), 8, 5, 0.4, 0.5);
 }
 
 /** 飄字（增益名稱、回血量）：billboard 文字向上飄並淡出 */

@@ -21,22 +21,22 @@ const FIRE_RANGE = 26;
 const KEEP_DIST = 13;
 
 const ZOMBIE_TYPES: ZombieType[] = [
-  { path: '/models/zombie/zombie_basic.glb', hp: 3, speed: 5.5, scale: 1 },
-  { path: '/models/zombie/zombie_ribcage.glb', hp: 2, speed: 8, scale: 0.95 }, // 快速
-  { path: '/models/zombie/zombie_chubby.glb', hp: 12, speed: 3.2, scale: 1.35 }, // 坦克
-  { path: '/models/zombie/zombie_arm.glb', hp: 4, speed: 5, scale: 1 },
-  { path: '/models/zombie/zombie_skeleton.glb', hp: 4, speed: 6, scale: 1 }, // 不死骷髏
-  { path: '/models/zombie/zombie_skeleton_headless.glb', hp: 6, speed: 5, scale: 1, ranged: true }, // 無頭骷髏（遠程）
+  { path: '/models/penguin.glb', hp: 3, speed: 5.5, scale: 1 },
+  { path: '/models/chicken.glb', hp: 2, speed: 8, scale: 0.9 },
+  { path: '/models/fox.glb', hp: 12, speed: 3.2, scale: 1.25 },
+  { path: '/models/penguin.glb', hp: 4, speed: 5, scale: 0.82 },
+  { path: '/models/chicken.glb', hp: 4, speed: 6, scale: 1.08 },
+  { path: '/models/fox.glb', hp: 6, speed: 5, scale: 0.92, ranged: true },
 ];
 
 /** 怪物圖鑑資訊（供選單顯示） */
 export const ZOMBIE_INFO = [
-  { name: '基本殭屍', role: '雜兵', desc: '數量最多、血量普通的基本殭屍，靠數量淹沒你。', model: '/models/zombie/zombie_basic.glb' },
-  { name: '肋骨怪', role: '快速', desc: '移動速度極快、血量低，會迅速貼近，優先處理。', model: '/models/zombie/zombie_ribcage.glb' },
-  { name: '胖殭屍', role: '坦克', desc: '血量厚、移動慢的肉盾，需要較多火力才打得倒。', model: '/models/zombie/zombie_chubby.glb' },
-  { name: '斷臂殭屍', role: '一般', desc: '中規中矩的近戰殭屍，速度與血量都中等。', model: '/models/zombie/zombie_arm.glb' },
-  { name: '骷髏兵', role: '不死', desc: '海盜骷髏，移動偏快、血量普通，成群出現。', model: '/models/zombie/zombie_skeleton.glb' },
-  { name: '無頭骷髏', role: '遠程', desc: '保持距離朝你發射彈丸的不死射手，會被逼近時後退。', model: '/models/zombie/zombie_skeleton_headless.glb' },
+  { name: '雲朵小企鵝', role: '親近型', desc: '圓滾滾的小夥伴，會慢慢靠近公主，適合新手練習走位。', model: '/models/penguin.glb' },
+  { name: '星糖小雞', role: '快跑型', desc: '腳步很快、體型小，像糖果球一樣突然衝過來。', model: '/models/chicken.glb' },
+  { name: '桃帽小狐', role: '厚皮型', desc: '跑得慢但很有精神，需要多一點魔法才能請牠退場。', model: '/models/fox.glb' },
+  { name: '夢泡企鵝', role: '輕巧型', desc: '小小一隻、常常混在隊伍裡，會從旁邊靠近。', model: '/models/penguin.glb' },
+  { name: '緞帶小雞', role: '跳跳型', desc: '節奏感很強的小雞，成群出現時要保持距離。', model: '/models/chicken.glb' },
+  { name: '月光小狐', role: '遠程型', desc: '會保持距離丟出小星星，靠近時會害羞後退。', model: '/models/fox.glb' },
 ];
 
 const BASE_HEIGHT = 2.4;
@@ -57,7 +57,7 @@ interface Entry {
 }
 
 /**
- * 殭屍怪群：預先 instantiate 一池「有骨架動畫」的殭屍，導演以 setCount 啟用前 N 隻。
+ * 可愛小怪群：預先 instantiate 一池有動畫的模型，導演以 setCount 啟用前 N 隻。
  * 介面對齊原 EnemySystem（count/getX/getZ/isAlive/damage/update/insertAll/reset）。
  */
 export class ZombieHorde {
@@ -114,7 +114,7 @@ export class ZombieHorde {
 
         /** 以自有 holder 包住 glTF 根（其帶有 rotationQuaternion，直接設 rotation.y 無效）
          *  之後旋轉 holder 來轉向 */
-        const holder = new TransformNode('zombie', this.scene);
+        const holder = new TransformNode('cute-creature', this.scene);
         modelRoot.parent = holder;
         holder.setEnabled(false);
 
@@ -218,7 +218,7 @@ export class ZombieHorde {
     return i < this.count;
   }
 
-  /** 冰凍指定殭屍一段時間 */
+  /** 冰凍指定小怪一段時間 */
   freeze(i: number, dur: number) {
     if (i < this.count) this.freezeTimer[i] = Math.max(this.freezeTimer[i], dur);
   }
@@ -326,7 +326,7 @@ export class ZombieHorde {
       /** 面向玩家（模型前方 +Z） */
       root.rotation.y = Math.atan2(dirX, dirZ);
 
-      /** 受擊白光回饋：整隻殭屍閃白（per-mesh overlay，不影響其他殭屍） */
+      /** 受擊白光回饋：整隻小怪閃白（per-mesh overlay，不影響其他小怪） */
       const meshes = this.pool[i].meshes;
       if (this.hitFlash[i] > 0) {
         this.hitFlash[i] = Math.max(0, this.hitFlash[i] - dt);

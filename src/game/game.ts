@@ -33,6 +33,7 @@ import { Obstacle, resolveObstacles } from './obstacles';
 import { createRunState, rollChoices, xpForLevel, UPGRADES, type RunState, type Upgrade } from './upgrades';
 import { levelUpBurst, bossDeathBurst, hurtBurst, enemyDeathBurst, spawnText, setGlowLayer } from './effects';
 import { sound } from './sound';
+import { createPrincessModel, type PrincessStyle } from './princess-model';
 
 export type GameState = 'running' | 'levelup' | 'dead' | 'paused' | 'won';
 
@@ -87,6 +88,8 @@ export interface GameOptions {
   characterColor?: [number, number, number];
   /** 角色 GLB 模型路徑 */
   characterModel?: string;
+  /** 公主程序化造型 */
+  princessStyle?: PrincessStyle;
   /** 金幣加成倍率（貪婪） */
   goldMultiplier?: number;
   /** 難度設定 */
@@ -166,6 +169,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   camera.wheelPrecision = 3; // 滾輪縮放靈敏度
   camera.pinchPrecision = 60; // 手機雙指縮放靈敏度
   camera.panningSensibility = 0; // 停用平移（鎖定跟隨玩家）
+  const defaultCamera = { alpha: -Math.PI / 2, beta: Math.PI / 3.2, radius: 50 };
   const light = new HemisphericLight('light', new Vector3(0.4, 1, 0.3), scene);
   light.intensity = 0.85;
   light.groundColor = new Color3(0.25, 0.28, 0.4);
@@ -179,23 +183,12 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   const obstacles: Obstacle[] = [];
   void scatterProps(scene, obstacles, heightAt);
 
-  /** 玩家根節點（移動此節點，視覺為其子物件：GLB 或 fallback 膠囊） */
+  /** 玩家根節點（移動此節點，視覺為其子物件：GLB 或程序化公主造型） */
   const player = new TransformNode('player', scene);
   player.position.set(0, 0, 0);
 
-  const fallbackBody = MeshBuilder.CreateCapsule(
-    'player-body',
-    { radius: CONFIG.player.radius, height: CONFIG.player.radius * 2.4 },
-    scene,
-  );
+  const fallbackBody = createPrincessModel(scene, options.princessStyle ?? 'star');
   fallbackBody.parent = player;
-  fallbackBody.position.y = CONFIG.player.radius * 1.2;
-  const playerMaterial = new StandardMaterial('player-material', scene);
-  const pc = options.characterColor ?? [1, 0.95, 0.4];
-  playerMaterial.diffuseColor = new Color3(pc[0], pc[1], pc[2]);
-  playerMaterial.emissiveColor = new Color3(pc[0] * 0.3, pc[1] * 0.3, pc[2] * 0.3);
-  playerMaterial.specularColor = Color3.Black();
-  fallbackBody.material = playerMaterial;
 
   /** 角色 idle／walk 動畫群組（移動時切換成走路） */
   let playerWalk: AnimationGroup | undefined;
@@ -296,6 +289,34 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   let dmgAccum = 0;
   let state: GameState = 'running';
   let choices: Upgrade[] = [];
+
+  function safeHeight(x: number, z: number): number {
+    const y = heightAt(x, z);
+    return Number.isFinite(y) ? y : 0;
+  }
+
+  function recoverView() {
+    if (!Number.isFinite(player.position.x) || !Number.isFinite(player.position.y) || !Number.isFinite(player.position.z)) {
+      player.position.set(0, safeHeight(0, 0), 0);
+      jumpY = 0;
+      vy = 0;
+      grounded = true;
+    }
+    if (!Number.isFinite(camera.alpha)) camera.alpha = defaultCamera.alpha;
+    if (!Number.isFinite(camera.beta)) camera.beta = defaultCamera.beta;
+    if (!Number.isFinite(camera.radius)) camera.radius = defaultCamera.radius;
+    camera.beta = Math.max(camera.lowerBetaLimit ?? 0.35, Math.min(camera.upperBetaLimit ?? Math.PI / 2.2, camera.beta));
+    camera.radius = Math.max(camera.lowerRadiusLimit ?? 25, Math.min(camera.upperRadiusLimit ?? 80, camera.radius));
+    const groundY = safeHeight(player.position.x, player.position.z);
+    if (
+      !Number.isFinite(camera.target.x) ||
+      !Number.isFinite(camera.target.y) ||
+      !Number.isFinite(camera.target.z)
+    ) {
+      camera.target.set(player.position.x, groundY + 1.2, player.position.z);
+    }
+    scene.activeCamera = camera;
+  }
 
   /** 跳躍狀態（jumpY 為離地高度，疊加在地形高度之上） */
   let vy = 0;
@@ -491,6 +512,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   }
 
   function gameplay(dt: number) {
+    recoverView();
     const dir = input.getDirection();
     /** 清除過期增益，計算套用增益後的有效數值 */
     for (let i = activeBuffs.length - 1; i >= 0; i--) {
@@ -744,14 +766,20 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
   let throttle = 0;
   engine.runRenderLoop(() => {
-    const dt = Math.min(engine.getDeltaTime() / 1000, 0.05);
-    if (state === 'running') gameplay(dt);
-    scene.render();
+    try {
+      const dt = Math.min(engine.getDeltaTime() / 1000, 0.05);
+      if (state === 'running') gameplay(dt);
+      scene.render();
 
-    throttle += dt;
-    if (throttle >= 0.1) {
-      throttle = 0;
-      pushStats();
+      throttle += dt;
+      if (throttle >= 0.1) {
+        throttle = 0;
+        pushStats();
+      }
+    } catch (error) {
+      console.error('[game] render loop recovered', error);
+      recoverView();
+      scene.render();
     }
   });
 
@@ -836,11 +864,11 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       },
     ),
 
-    cfgParam('怪物', '數量上限', 0, 52, 1, () => CONFIG.director.maxCount, (v) => (CONFIG.director.maxCount = v)),
-    cfgParam('怪物', '初始數量', 0, 52, 1, () => CONFIG.director.baseCount, (v) => (CONFIG.director.baseCount = v)),
-    cfgParam('怪物', '每階增量', 0, 20, 1, () => CONFIG.director.addPerStep, (v) => (CONFIG.director.addPerStep = v)),
-    cfgParam('怪物', '升壓間隔秒', 1, 30, 1, () => CONFIG.director.stepIntervalSec, (v) => (CONFIG.director.stepIntervalSec = v)),
-    cfgParam('怪物', '分離力', 0, 30, 1, () => CONFIG.enemy.separationForce, (v) => (CONFIG.enemy.separationForce = v)),
+    cfgParam('小怪', '數量上限', 0, 52, 1, () => CONFIG.director.maxCount, (v) => (CONFIG.director.maxCount = v)),
+    cfgParam('小怪', '初始數量', 0, 52, 1, () => CONFIG.director.baseCount, (v) => (CONFIG.director.baseCount = v)),
+    cfgParam('小怪', '每階增量', 0, 20, 1, () => CONFIG.director.addPerStep, (v) => (CONFIG.director.addPerStep = v)),
+    cfgParam('小怪', '升壓間隔秒', 1, 30, 1, () => CONFIG.director.stepIntervalSec, (v) => (CONFIG.director.stepIntervalSec = v)),
+    cfgParam('小怪', '分離力', 0, 30, 1, () => CONFIG.enemy.separationForce, (v) => (CONFIG.enemy.separationForce = v)),
 
     cfgParam('王/道具', '王間隔秒', 5, 120, 1, () => CONFIG.boss.intervalSec, (v) => (CONFIG.boss.intervalSec = v)),
     cfgParam('王/道具', '王基礎血', 50, 5000, 50, () => CONFIG.boss.hpBase, (v) => (CONFIG.boss.hpBase = v)),
@@ -849,7 +877,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
     cfgParam('王招式', '彈幕傷害', 0, 100, 1, () => hazards.projDamage, (v) => (hazards.projDamage = v)),
     cfgParam('王招式', '震波傷害', 0, 100, 1, () => hazards.shockDamage, (v) => (hazards.shockDamage = v)),
-    cfgParam('王招式', '毒池傷害/秒', 0, 100, 1, () => hazards.poisonDps, (v) => (hazards.poisonDps = v)),
+    cfgParam('王招式', '泡泡圈傷害/秒', 0, 100, 1, () => hazards.poisonDps, (v) => (hazards.poisonDps = v)),
   ];
 
   pushStats();
@@ -876,6 +904,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       else hp = Math.min(run.maxHp, hp + run.maxHp * 0.3);
       choices = [];
       state = 'running';
+      recoverView();
+      engine.resize();
       pushStats();
     },
     restart() {

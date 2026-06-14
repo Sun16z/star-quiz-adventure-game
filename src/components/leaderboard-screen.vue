@@ -56,7 +56,7 @@
           <span>#</span>
           <span>玩家</span>
           <span class="text-right">{{ mode === 'cleared' ? '破關' : '存活' }}</span>
-          <span class="text-right">擊殺</span>
+          <span class="text-right">擊退</span>
           <span class="text-right">等級</span>
         </div>
         <div
@@ -104,7 +104,7 @@ const records = ref<RunRecord[]>([]);
 const isGlobal = ref(false);
 
 const modeHint = computed(() =>
-  mode.value === 'cleared' ? '擊敗全部 7 王者，比誰破關最快' : '未破關者，比誰活得最久',
+  mode.value === 'cleared' ? '安撫全部 7 位夢境大夥伴，比誰破關最快' : '未破關者，比誰撐得最久',
 );
 const emptyHint = computed(() =>
   mode.value === 'cleared' ? '此難度尚無人破關，來搶頭香！' : '此難度尚無紀錄，快去拚一場！',

@@ -4,15 +4,15 @@
     <div class="absolute top-4 left-4 flex flex-col gap-2 text-white">
       <!-- 標題（手機隱藏，避免與按鈕/王血條重疊） -->
       <div class="hidden items-center gap-3 rounded-2xl bg-black/40 px-4 py-2 backdrop-blur-md sm:flex">
-        <span class="text-3xl font-black tracking-wider">殭屍大逃殺</span>
+        <span class="text-3xl font-black tracking-wider">星願問答大冒險</span>
       </div>
 
       <div class="flex flex-wrap gap-1.5 text-xs font-bold sm:gap-2 sm:text-sm">
         <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3" :class="fpsClass">
           FPS {{ stats.fps }}
         </span>
-        <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3">敵人 {{ stats.enemies }}</span>
-        <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3">擊殺 {{ stats.kills }}</span>
+        <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3">小怪 {{ stats.enemies }}</span>
+        <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3">擊退 {{ stats.kills }}</span>
         <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3">時間 {{ timeText }}</span>
       </div>
 
@@ -47,7 +47,7 @@
       class="absolute left-1/2 top-32 w-[min(92vw,32rem)] -translate-x-1/2 text-center text-white sm:top-4 sm:w-[min(80vw,32rem)]"
     >
       <div class="mb-1 text-xs font-black tracking-widest text-rose-300 sm:text-sm">
-        ⚠ {{ stats.bossName }} ⚠
+        ✨ {{ stats.bossName }} ✨
         <span class="ml-1 text-amber-300/90">[{{ stats.bossSkill }}]</span>
         <span class="ml-1 text-white/60">{{ stats.bossDefeated + 1 }}/{{ stats.bossTotal }}</span>
       </div>

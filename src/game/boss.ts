@@ -27,88 +27,88 @@ interface BossDef {
 /** 依序登場的 5 隻王，打完第 5 隻即破關 */
 const BOSS_DEFS: BossDef[] = [
   {
-    name: '巨胖殭屍',
-    model: '/models/zombie/zombie_chubby.glb',
+    name: '棉花雲朵獸',
+    model: '/models/penguin.glb',
     radius: 6,
     speed: 6,
     contactDps: 32,
     hpMul: 1,
     skill: 'charge',
     skillInterval: 5,
-    skillName: '蓄力衝撞',
-    desc: '第 1 隻王。高血量肉盾，會短暫蓄力後高速衝撞，注意拉開距離。',
+    skillName: '雲朵衝衝',
+    desc: '第 1 位夢境大夥伴。會先停一下再往前衝，看到牠準備動作就往旁邊走。',
   },
   {
-    name: '狂暴肋骨怪',
-    model: '/models/zombie/zombie_ribcage.glb',
+    name: '緞帶夜小狐',
+    model: '/models/fox.glb',
     radius: 4.8,
     speed: 9,
     contactDps: 28,
     hpMul: 0.9,
     skill: 'aimed',
     skillInterval: 2.6,
-    skillName: '骨刺連射',
-    desc: '第 2 隻王。移動極快，會朝你連射骨刺彈幕，邊跑邊閃。',
+    skillName: '星糖連射',
+    desc: '第 2 位夢境大夥伴。跑得很快，會丟出一串星糖，邊跑邊閃最安全。',
   },
   {
-    name: '斷臂巨怪',
-    model: '/models/zombie/zombie_arm.glb',
+    name: '蘑菇帽隊長',
+    model: '/models/chicken.glb',
     radius: 6.4,
     speed: 5.5,
     contactDps: 34,
     hpMul: 1.3,
     skill: 'shockwave',
     skillInterval: 4,
-    skillName: '震地波',
-    desc: '第 3 隻王。高血量，定期落地震波向外擴散，看到擴張環就走位避開。',
+    skillName: '跳跳音符波',
+    desc: '第 3 位夢境大夥伴。會踩出一圈音符波，看到圓圈往外散開時要離開路線。',
   },
   {
-    name: '腐毒殭屍',
-    model: '/models/zombie/zombie_basic.glb',
+    name: '果凍泡泡獸',
+    model: '/models/penguin.glb',
     radius: 6,
     speed: 7,
     contactDps: 30,
     hpMul: 1.2,
     skill: 'poison',
     skillInterval: 4.5,
-    skillName: '毒池',
-    desc: '第 4 隻王。在你腳下生成毒池，停留會持續扣血，別站在綠池裡。',
+    skillName: '布丁泡泡圈',
+    desc: '第 4 位夢境大夥伴。會在腳邊留下泡泡圈，站太久會扣血，記得換位置。',
   },
   {
-    name: '海盜船長',
-    model: '/models/zombie/boss_captain.glb',
+    name: '星海船長',
+    model: '/models/fox.glb',
     radius: 6,
     speed: 7,
     contactDps: 34,
     hpMul: 1.3,
     skill: 'aimed',
-    skillName: '手槍掃射',
+    skillName: '星星掃射',
     skillInterval: 2.4,
-    desc: '不死海盜船長，邊逼近邊以手槍朝你掃射彈幕。',
+    desc: '第 5 位夢境大夥伴。會邊靠近邊丟出星星，保持斜線移動比較好閃。',
   },
   {
-    name: '巨鯊',
-    model: '/models/zombie/boss_shark.glb',
+    name: '彩虹滑板狐',
+    model: '/models/fox.glb',
     radius: 7,
     speed: 11,
     contactDps: 36,
     hpMul: 1.4,
     skill: 'charge',
-    skillName: '高速衝咬',
+    skillName: '彩虹滑行',
     skillInterval: 4,
-    desc: '從陸上滑行的巨鯊，蓄力後高速衝咬，閃避時機要抓準。',
+    desc: '第 6 位夢境大夥伴。速度很快，準備滑行時要抓準時機側移。',
   },
   {
-    name: '深海觸手',
-    model: '/models/zombie/boss_tentacle.glb',
+    name: '月光星環王',
+    model: '/models/penguin.glb',
     radius: 21,
     speed: 3,
     contactDps: 42,
     hpMul: 1.9,
     skill: 'radial',
-    skillName: '深海彈幕',
+    skillName: '月光星環',
     skillInterval: 1.5,
-    desc: '最終王。克拉肯之臂緩慢逼近，釋放全方位環形彈幕，擊敗即破關。',
+    desc: '最後一位夢境大夥伴。會放出一圈圈星光，站在空隙裡持續移動就能通關。',
   },
 ];
 
@@ -128,7 +128,7 @@ const FLASH_DUR = 0.16;
 const WHITE = new Color3(1, 1, 1);
 
 /**
- * 王：依序登場的 5 隻巨型殭屍，各有特殊招式。
+ * 王：依序登場的夢境大夥伴，各有特殊招式。
  * 5 種模型於建構時預先載入，spawn 時啟用對應的一隻。
  */
 export class Boss {
@@ -180,8 +180,8 @@ export class Boss {
     this.fallback = MeshBuilder.CreateSphere('boss-body', { diameter: 2, segments: 14 }, scene);
     this.fallback.parent = this.root;
     const material = new StandardMaterial('boss-material', scene);
-    material.diffuseColor = new Color3(0.4, 0.55, 0.3);
-    material.emissiveColor = new Color3(0.2, 0.4, 0.15);
+    material.diffuseColor = new Color3(0.95, 0.58, 0.82);
+    material.emissiveColor = new Color3(0.25, 0.12, 0.28);
     material.specularColor = Color3.Black();
     this.fallback.material = material;
     this.fallback.overlayColor = WHITE;

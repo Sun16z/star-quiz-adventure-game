@@ -1,6 +1,6 @@
 <template>
   <div class="relative w-full h-full overflow-hidden bg-[#0b1020]">
-    <canvas ref="canvasRef" class="w-full h-full block outline-none touch-none" />
+    <canvas ref="canvasRef" class="w-full h-full block outline-none touch-none" tabindex="0" @pointerdown="focusCanvas" />
 
     <hud :stats="stats" />
 
@@ -128,6 +128,7 @@
       v-if="stats.state === 'levelup'"
       :level="stats.level"
       :choices="stats.choices"
+      :quiz-grade="quizGrade"
       @choose="onChoose"
     />
 
@@ -168,6 +169,8 @@ import { sendHeartbeat } from '../game/api';
 import { QUALITIES, type QualityId } from '../game/quality';
 import type { RunState } from '../game/upgrades';
 import type { Difficulty } from '../game/difficulty';
+import type { QuestionGrade } from '../game/question-bank';
+import type { PrincessStyle } from '../game/princess-model';
 import Hud from './hud.vue';
 import Joystick from './joystick.vue';
 import LevelUpModal from './level-up-modal.vue';
@@ -178,9 +181,11 @@ import PauseMenuModal from './pause-menu-modal.vue';
 const props = defineProps<{
   characterColor: [number, number, number];
   characterModel?: string;
+  princessStyle: PrincessStyle;
   startRunState?: RunState;
   goldMultiplier: number;
   difficulty?: Difficulty;
+  quizGrade: QuestionGrade;
 }>();
 const emit = defineEmits<{
   (e: 'gameover', result: RunResult): void;
@@ -243,6 +248,7 @@ onMounted(() => {
     startRunState: props.startRunState,
     characterColor: props.characterColor,
     characterModel: props.characterModel,
+    princessStyle: props.princessStyle,
     goldMultiplier: props.goldMultiplier,
     difficulty: props.difficulty,
     quality: quality.value,
@@ -253,6 +259,7 @@ onMounted(() => {
     onGameOver: (r) => emit('gameover', r),
   });
   game.setMuted(muted.value);
+  focusCanvas();
 
   /** 在線心跳：遊戲進行期間每 60 秒上報一次（首頁據此顯示遊玩人數；online 視窗 90s） */
   void sendHeartbeat();
@@ -267,6 +274,9 @@ onBeforeUnmount(() => {
 
 function onJoyMove(dir: { x: number; z: number }) {
   game?.setJoystick(dir.x, dir.z);
+}
+function focusCanvas() {
+  canvasRef.value?.focus({ preventScroll: true });
 }
 function onJoyEnd() {
   game?.setJoystick(0, 0);

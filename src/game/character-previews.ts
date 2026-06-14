@@ -9,6 +9,7 @@ import {
   SceneLoader,
 } from '@babylonjs/core';
 import '@babylonjs/loaders';
+import { createPrincessModel, type PrincessStyle } from './princess-model';
 
 export interface PreviewHandle {
   dispose: () => void;
@@ -18,7 +19,11 @@ export interface PreviewHandle {
  * 在指定 canvas 上建立角色的即時 3D 預覽（播放 idle 動畫、緩慢旋轉）。
  * 每張卡一個輕量引擎；選單卸載時請呼叫 dispose 釋放 WebGL context。
  */
-export async function setupCharacterPreview(canvas: HTMLCanvasElement, modelPath: string): Promise<PreviewHandle | null> {
+export async function setupCharacterPreview(
+  canvas: HTMLCanvasElement,
+  modelPath: string | undefined,
+  princessStyle: PrincessStyle = 'star',
+): Promise<PreviewHandle | null> {
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: false });
   const scene = new Scene(engine);
   scene.clearColor = new Color4(0.1, 0.13, 0.22, 1);
@@ -30,13 +35,7 @@ export async function setupCharacterPreview(canvas: HTMLCanvasElement, modelPath
   dir.intensity = 0.7;
 
   try {
-    const slash = modelPath.lastIndexOf('/');
-    const res = await SceneLoader.ImportMeshAsync('', modelPath.slice(0, slash + 1), modelPath.slice(slash + 1), scene);
-    const idle = res.animationGroups.find((g) => /idle/i.test(g.name)) ?? res.animationGroups[0];
-    res.animationGroups.forEach((g) => g.stop());
-    idle?.play(true);
-
-    const root = res.meshes[0];
+    const root = modelPath ? await loadPreviewModel(scene, modelPath) : createPrincessModel(scene, princessStyle);
     /** 先正規化到統一最大尺寸，配合固定相機距離 → 各角色看起來一樣大 */
     const b1 = root.getHierarchyBoundingVectors();
     const size = Math.max(b1.max.x - b1.min.x, b1.max.y - b1.min.y, b1.max.z - b1.min.z, 0.5);
@@ -54,4 +53,13 @@ export async function setupCharacterPreview(canvas: HTMLCanvasElement, modelPath
     engine.dispose();
     return null;
   }
+}
+
+async function loadPreviewModel(scene: Scene, modelPath: string) {
+  const slash = modelPath.lastIndexOf('/');
+  const res = await SceneLoader.ImportMeshAsync('', modelPath.slice(0, slash + 1), modelPath.slice(slash + 1), scene);
+  const idle = res.animationGroups.find((g) => /idle/i.test(g.name)) ?? res.animationGroups[0];
+  res.animationGroups.forEach((g) => g.stop());
+  idle?.play(true);
+  return res.meshes[0];
 }

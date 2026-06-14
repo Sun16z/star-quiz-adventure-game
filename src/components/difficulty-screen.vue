@@ -27,7 +27,7 @@
             <div class="text-sm text-white/60">{{ d.desc }}</div>
           </div>
           <div class="text-right text-xs text-white/55">
-            <div>怪物 ×{{ d.enemyHp }} 血</div>
+            <div>小怪耐力 ×{{ d.enemyHp }}</div>
             <div>金幣 ×{{ d.goldReward }}</div>
           </div>
         </button>

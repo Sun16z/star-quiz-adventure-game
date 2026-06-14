@@ -5,15 +5,21 @@ export class Input {
   private joystick = { x: 0, z: 0 };
 
   private onKeyDown = (e: KeyboardEvent) => {
-    this.keys.add(e.key.toLowerCase());
+    const key = this.normalizeKey(e);
+    if (!key) return;
+    this.keys.add(key);
+    e.preventDefault();
   };
   private onKeyUp = (e: KeyboardEvent) => {
-    this.keys.delete(e.key.toLowerCase());
+    const key = this.normalizeKey(e);
+    if (!key) return;
+    this.keys.delete(key);
+    e.preventDefault();
   };
 
   attach() {
-    window.addEventListener('keydown', this.onKeyDown);
-    window.addEventListener('keyup', this.onKeyUp);
+    window.addEventListener('keydown', this.onKeyDown, { passive: false });
+    window.addEventListener('keyup', this.onKeyUp, { passive: false });
   }
 
   detach() {
@@ -48,5 +54,21 @@ export class Input {
       z /= len;
     }
     return { x, z };
+  }
+
+  private normalizeKey(e: KeyboardEvent): string {
+    const byCode: Record<string, string> = {
+      KeyW: 'w',
+      KeyA: 'a',
+      KeyS: 's',
+      KeyD: 'd',
+      ArrowUp: 'arrowup',
+      ArrowDown: 'arrowdown',
+      ArrowLeft: 'arrowleft',
+      ArrowRight: 'arrowright',
+    };
+    const key = byCode[e.code] ?? e.key.toLowerCase();
+    if (key === 'w' || key === 'a' || key === 's' || key === 'd' || key.startsWith('arrow')) return key;
+    return '';
   }
 }

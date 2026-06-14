@@ -26,13 +26,32 @@
       </button>
     </div>
 
-    <div class="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+    <div class="mx-auto flex max-w-3xl flex-col gap-6 p-6 pb-28">
       <!-- 標題 -->
       <div class="pt-4 text-center">
-        <div class="text-5xl font-black tracking-wider">殭屍大逃殺</div>
-        <div class="mt-1 text-sm text-white/60">在殭屍潮中倖存・3D 倖存者類 roguelite</div>
+        <div class="text-5xl font-black tracking-wider">星願問答大冒險</div>
+        <div class="mt-1 text-sm text-white/60">公主闖關前先答題・答對才能拿寶物</div>
         <div class="mt-3 inline-block rounded-full bg-amber-400/90 px-5 py-1 text-lg font-black text-black">
           💰 {{ meta.gold }}
+        </div>
+      </div>
+
+      <!-- 題庫 -->
+      <div>
+        <div class="mb-2 text-lg font-black">選擇題庫</div>
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            v-for="g in questionGrades"
+            :key="g.id"
+            type="button"
+            class="rounded-2xl p-4 text-left ring-2 transition active:scale-[0.98]"
+            :class="quizGrade === g.id ? 'bg-lime-400/20 ring-lime-300' : 'bg-white/5 ring-white/10 hover:ring-white/30'"
+            @click="selectQuizGrade(g.id)"
+          >
+            <div class="text-2xl font-black text-lime-200">{{ g.shortLabel }}</div>
+            <div class="mt-1 text-sm font-black">{{ g.label }}</div>
+            <div class="mt-1 text-xs leading-snug text-white/60">{{ g.desc }}</div>
+          </button>
         </div>
       </div>
 
@@ -103,10 +122,10 @@
 
       <!-- 開始 -->
       <button
-        class="sticky bottom-4 mt-2 w-full rounded-full bg-amber-400 py-4 text-2xl font-black text-black shadow-lg transition hover:bg-amber-300 active:scale-95"
-        @click="emit('start', selectedId)"
+        class="mt-2 w-full rounded-full bg-amber-400 py-4 text-2xl font-black text-black shadow-lg transition hover:bg-amber-300 active:scale-95"
+        @click="emit('start', selectedId, quizGrade)"
       >
-        ▶ 開始（{{ selectedName }}）
+        ▶ 開始（{{ selectedName }}・{{ selectedQuizGrade.shortLabel }}）
       </button>
 
     </div>
@@ -118,10 +137,17 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { CHARACTERS, getCharacter, type Character } from '../game/characters';
 import { PERMA, permaCost, type MetaData, type PermaUpgrade } from '../game/meta';
 import { setupCharacterPreview, type PreviewHandle } from '../game/character-previews';
+import {
+  DEFAULT_QUESTION_GRADE,
+  QUESTION_GRADES,
+  getQuestionGradeInfo,
+  isQuestionGrade,
+  type QuestionGrade,
+} from '../game/question-bank';
 
 const props = defineProps<{ meta: MetaData }>();
 const emit = defineEmits<{
-  (e: 'start', characterId: string): void;
+  (e: 'start', characterId: string, quizGrade: QuestionGrade): void;
   (e: 'buy', permaId: string): void;
   (e: 'unlock', characterId: string): void;
   (e: 'add-gold', amount: number): void;
@@ -131,6 +157,16 @@ const emit = defineEmits<{
 const characters = CHARACTERS;
 const perma = PERMA;
 const selectedId = ref('matt');
+const QUIZ_GRADE_KEY = 'animal-survivors:quiz-grade';
+const savedQuizGrade = localStorage.getItem(QUIZ_GRADE_KEY) ?? '';
+const quizGrade = ref<QuestionGrade>(isQuestionGrade(savedQuizGrade) ? savedQuizGrade : DEFAULT_QUESTION_GRADE);
+const questionGrades = QUESTION_GRADES;
+const selectedQuizGrade = computed(() => getQuestionGradeInfo(quizGrade.value));
+
+function selectQuizGrade(id: QuestionGrade) {
+  quizGrade.value = id;
+  localStorage.setItem(QUIZ_GRADE_KEY, id);
+}
 
 /** 角色即時 3D 預覽：每張卡一個引擎，播 idle 並旋轉；就緒前以 emoji 替代 */
 const ready = ref<Record<string, boolean>>({});
@@ -143,8 +179,8 @@ onMounted(async () => {
   await nextTick();
   for (const c of CHARACTERS) {
     const canvas = canvases.get(c.id);
-    if (!canvas || !c.model) continue;
-    const h = await setupCharacterPreview(canvas, c.model);
+    if (!canvas) continue;
+    const h = await setupCharacterPreview(canvas, c.model, c.princessStyle);
     if (h) {
       handles.push(h);
       ready.value = { ...ready.value, [c.id]: true };
@@ -174,7 +210,7 @@ function toggleDebug() {
 const selectedName = computed(() => getCharacter(selectedId.value).name);
 
 function isUnlocked(id: string) {
-  return debug.value || props.meta.unlocked.includes(id);
+  return debug.value || props.meta.unlocked.includes(id) || getCharacter(id).cost === 0;
 }
 function level(id: string) {
   return props.meta.perma[id] ?? 0;

@@ -17,8 +17,8 @@ interface ShapeData {
   style: Record<string, string>;
 }
 
-/** 末日色盤：殭屍綠、暗綠、血紅、鏽棕、深藍灰 */
-const COLORS = ['#3f7a3a', '#5b8c3a', '#7a2b2b', '#9c5a2b', '#2b3a44', '#4a6b2e'];
+/** 夢境色盤：星空藍、莓果粉、薄荷綠、奶油黃、薰衣草紫 */
+const COLORS = ['#7dd3fc', '#f9a8d4', '#a7f3d0', '#fde68a', '#c4b5fd', '#f0abfc'];
 const SHAPES = ['circle', 'square', 'triangle'] as const;
 
 function rand(min: number, max: number) {
@@ -26,7 +26,7 @@ function rand(min: number, max: number) {
 }
 
 const bgStyle = {
-  background: 'linear-gradient(160deg, #0a0f0a 0%, #142016 45%, #0c1118 100%)',
+  background: 'linear-gradient(160deg, #152044 0%, #3f2c68 48%, #1b315e 100%)',
 };
 
 const shapes: ShapeData[] = Array.from({ length: 22 }, (_, i) => {

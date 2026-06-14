@@ -23,9 +23,11 @@
     v-else
     :character-color="characterColor"
     :character-model="characterModel"
+    :princess-style="princessStyle"
     :start-run-state="startRun"
     :gold-multiplier="goldMul"
     :difficulty="difficulty"
+    :quiz-grade="quizGrade"
     @gameover="onGameOver"
     @menu="screen = 'landing'"
   />
@@ -42,8 +44,10 @@ import DifficultyScreen from './components/difficulty-screen.vue';
 import MessageBoardScreen from './components/message-board-screen.vue';
 import { loadMeta, saveMeta, computeStartRunState, goldMultiplier, PERMA, permaCost } from './game/meta';
 import { getCharacter } from './game/characters';
+import type { PrincessStyle } from './game/princess-model';
 import { addRecord, recordStats, getPlayerName } from './game/leaderboard';
 import { getDifficulty, type Difficulty } from './game/difficulty';
+import { DEFAULT_QUESTION_GRADE, type QuestionGrade } from './game/question-bank';
 import { submitRun } from './game/api';
 import type { RunState } from './game/upgrades';
 import type { RunResult } from './game/game';
@@ -54,7 +58,9 @@ const screen = ref<'landing' | 'difficulty' | 'menu' | 'game' | 'leaderboard' | 
 const startRun = shallowRef<RunState>();
 const characterColor = ref<[number, number, number]>([1, 1, 1]);
 const characterModel = ref<string>();
+const princessStyle = ref<PrincessStyle>('star');
 const goldMul = ref(1);
+const quizGrade = ref<QuestionGrade>(DEFAULT_QUESTION_GRADE);
 let lastCharId = 'matt';
 
 const DIFF_KEY = 'animal-survivors:difficulty';
@@ -65,12 +71,14 @@ function onSelectDifficulty(id: string) {
   screen.value = 'menu';
 }
 
-function onStart(charId: string) {
+function onStart(charId: string, selectedQuizGrade: QuestionGrade) {
   const ch = getCharacter(charId);
   lastCharId = charId;
+  quizGrade.value = selectedQuizGrade;
   startRun.value = computeStartRunState(charId, meta.perma);
   characterColor.value = ch.bodyColor;
   characterModel.value = ch.model;
+  princessStyle.value = ch.princessStyle;
   goldMul.value = goldMultiplier(meta.perma) * difficulty.value.goldReward;
   screen.value = 'game';
 }

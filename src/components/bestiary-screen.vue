@@ -10,12 +10,12 @@
         >
           ← 返回
         </button>
-        <h1 class="text-3xl font-black tracking-wider">🧟 怪物圖鑑</h1>
+        <h1 class="text-3xl font-black tracking-wider">🎀 夢境圖鑑</h1>
       </div>
 
       <!-- 怪物 -->
       <div>
-        <div class="mb-2 text-lg font-black">一般殭屍</div>
+        <div class="mb-2 text-lg font-black">可愛小夥伴</div>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div
             v-for="z in zombieInfo"
@@ -23,7 +23,7 @@
             class="flex flex-col items-center gap-1 rounded-2xl bg-white/5 p-3 text-center ring-1 ring-white/10"
           >
             <img v-if="modelThumbs[z.model]" :src="modelThumbs[z.model]" class="h-24 w-24 rounded-xl" :alt="z.name" />
-            <span v-else class="flex h-24 w-24 items-center justify-center text-5xl">🧟</span>
+            <span v-else class="flex h-24 w-24 items-center justify-center text-5xl">🧸</span>
             <div class="font-black">{{ z.name }}</div>
             <div class="text-[0.72rem] font-bold text-emerald-300/80">{{ z.role }}</div>
             <div class="text-[0.68rem] leading-snug text-white/55">{{ z.desc }}</div>
@@ -33,7 +33,7 @@
 
       <!-- 王 -->
       <div>
-        <div class="mb-2 text-lg font-black">殭屍王（依序登場）</div>
+        <div class="mb-2 text-lg font-black">夢境大夥伴（依序登場）</div>
         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div
             v-for="(b, i) in bossInfo"
@@ -41,7 +41,7 @@
             class="flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10"
           >
             <img v-if="modelThumbs[b.model]" :src="modelThumbs[b.model]" class="h-20 w-20 shrink-0 rounded-xl" :alt="b.name" />
-            <span v-else class="flex h-20 w-20 shrink-0 items-center justify-center text-4xl">🧟‍♂️</span>
+            <span v-else class="flex h-20 w-20 shrink-0 items-center justify-center text-4xl">🌟</span>
             <div class="min-w-0">
               <div class="font-black">{{ i + 1 }}. {{ b.name }}</div>
               <div class="text-xs font-bold text-rose-300/80">招式：{{ b.skill }}</div>

@@ -3,6 +3,12 @@ import type { RunRecord, GlobalStats } from './leaderboard';
 /** 後端 API（Cloudflare Pages Functions，同源 /api）。全部失敗時回傳 null，由呼叫端回退本機資料。 */
 const BASE = '/api';
 const DEVICE_KEY = 'animal-survivors:deviceId';
+const LOCAL_STATIC_PORTS = new Set(['5173', '4173']);
+
+function skipBackend(): boolean {
+  const localHost = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+  return localHost && LOCAL_STATIC_PORTS.has(location.port);
+}
 
 function deviceId(): string {
   let id = localStorage.getItem(DEVICE_KEY);
@@ -26,6 +32,7 @@ export interface RunSubmit {
 
 /** 送出一場結算（fire-and-forget，離線/失敗則忽略） */
 export async function submitRun(run: RunSubmit): Promise<void> {
+  if (skipBackend()) return;
   try {
     await fetch(`${BASE}/run`, {
       method: 'POST',
@@ -43,6 +50,7 @@ export async function fetchLeaderboard(
   difficulty?: string,
   mode: 'cleared' | 'survival' = 'survival',
 ): Promise<RunRecord[] | null> {
+  if (skipBackend()) return null;
   try {
     const q = difficulty ? `&difficulty=${encodeURIComponent(difficulty)}` : '';
     const res = await fetch(`${BASE}/leaderboard?limit=${limit}&mode=${mode}${q}`);
@@ -55,6 +63,7 @@ export async function fetchLeaderboard(
 
 /** 上報心跳（遊戲進行中定期呼叫，標記在線）；失敗忽略 */
 export async function sendHeartbeat(): Promise<void> {
+  if (skipBackend()) return;
   try {
     await fetch(`${BASE}/heartbeat`, {
       method: 'POST',
@@ -68,6 +77,7 @@ export async function sendHeartbeat(): Promise<void> {
 
 /** 取目前線上遊玩人數；失敗回傳 null */
 export async function fetchOnline(): Promise<number | null> {
+  if (skipBackend()) return null;
   try {
     const res = await fetch(`${BASE}/online`);
     if (!res.ok) return null;
@@ -88,6 +98,7 @@ export interface Message {
 
 /** 取最新留言；失敗回傳 null */
 export async function fetchMessages(): Promise<Message[] | null> {
+  if (skipBackend()) return null;
   try {
     const res = await fetch(`${BASE}/messages`);
     if (!res.ok) return null;
@@ -99,6 +110,7 @@ export async function fetchMessages(): Promise<Message[] | null> {
 
 /** 送出一則留言；成功回傳 true */
 export async function postMessage(name: string, text: string): Promise<boolean> {
+  if (skipBackend()) return false;
   try {
     const res = await fetch(`${BASE}/messages`, {
       method: 'POST',
@@ -113,6 +125,7 @@ export async function postMessage(name: string, text: string): Promise<boolean> 
 
 /** 取全球累計統計；失敗回傳 null */
 export async function fetchStats(): Promise<GlobalStats | null> {
+  if (skipBackend()) return null;
   try {
     const res = await fetch(`${BASE}/stats`);
     if (!res.ok) return null;

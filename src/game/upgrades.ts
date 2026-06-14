@@ -101,28 +101,28 @@ export interface Upgrade {
 }
 
 export const UPGRADES: Upgrade[] = [
-  { id: 'damage', name: '攻擊力', desc: '武器傷害 +1', emoji: '⚔️', maxLevel: 8, apply: (s) => (s.damage += 1) },
-  { id: 'firerate', name: '攻速', desc: '發射間隔 −12%', emoji: '⚡', maxLevel: 8, apply: (s) => (s.fireInterval *= 0.88) },
-  { id: 'multishot', name: '多重彈', desc: '投射物 +1', emoji: '🎯', maxLevel: 4, apply: (s) => (s.projectileCount += 1) },
-  { id: 'range', name: '射程', desc: '鎖定範圍 +20%', emoji: '🔭', maxLevel: 5, apply: (s) => (s.range *= 1.2) },
-  { id: 'projspeed', name: '彈速', desc: '投射物速度 +20%', emoji: '💨', maxLevel: 5, apply: (s) => (s.projectileSpeed *= 1.2) },
+  { id: 'damage', name: '魔法力', desc: '星光魔法威力 +1', emoji: '✨', maxLevel: 8, apply: (s) => (s.damage += 1) },
+  { id: 'firerate', name: '施法速度', desc: '施法間隔 −12%', emoji: '⚡', maxLevel: 8, apply: (s) => (s.fireInterval *= 0.88) },
+  { id: 'multishot', name: '多重星星', desc: '星星魔法 +1', emoji: '🌟', maxLevel: 4, apply: (s) => (s.projectileCount += 1) },
+  { id: 'range', name: '星光距離', desc: '鎖定範圍 +20%', emoji: '🔭', maxLevel: 5, apply: (s) => (s.range *= 1.2) },
+  { id: 'projspeed', name: '星星速度', desc: '星星飛行速度 +20%', emoji: '💨', maxLevel: 5, apply: (s) => (s.projectileSpeed *= 1.2) },
   { id: 'movespeed', name: '移動速度', desc: '移速 +10%', emoji: '👟', maxLevel: 5, apply: (s) => (s.moveSpeed *= 1.1) },
   {
     id: 'jump',
-    name: '跳躍強化',
+    name: '跳跳鞋',
     desc: '跳得更高、滯空更久（騰空可閃避接觸傷害）',
     emoji: '🦘',
     maxLevel: 4,
     apply: (s) => (s.jumpStrength += 2),
   },
-  { id: 'maxhp', name: '最大生命', desc: '生命上限 +20 並補滿', emoji: '❤️', maxLevel: 5, apply: (s) => (s.maxHp += 20) },
+  { id: 'maxhp', name: '愛心能量', desc: '生命上限 +20 並補滿', emoji: '❤️', maxLevel: 5, apply: (s) => (s.maxHp += 20) },
   { id: 'magnet', name: '拾取範圍', desc: '經驗吸取範圍 +30%', emoji: '🧲', maxLevel: 5, apply: (s) => (s.pickupRadius *= 1.3) },
   { id: 'xpgain', name: '經驗加成', desc: '經驗獲得 +15%', emoji: '⭐', maxLevel: 5, apply: (s) => (s.xpMultiplier *= 1.15) },
   {
     id: 'orbital',
-    name: '環繞飛斧',
-    desc: '召喚環繞身邊的旋轉斧頭，碰撞傷害敵人；已有則 +1 把並擴大環繞範圍',
-    emoji: '🪓',
+    name: '旋轉星星',
+    desc: '召喚環繞身邊的旋轉星星，靠近的小怪會被推開；已有則 +1 顆並擴大範圍',
+    emoji: '💫',
     maxLevel: 10,
     apply: (s) => {
       s.orbitalCount += 1;
@@ -132,9 +132,9 @@ export const UPGRADES: Upgrade[] = [
   },
   {
     id: 'aura',
-    name: '傷害光環',
-    desc: '展開持續傷害光環，自動灼燒靠近的敵人；已有則擴大並增傷',
-    emoji: '🌀',
+    name: '守護光圈',
+    desc: '展開柔和守護光圈，自動推開靠近的小怪；已有則擴大並增強',
+    emoji: '🫧',
     maxLevel: 10,
     apply: (s) => {
       s.auraRadius = s.auraRadius === 0 ? 4 : s.auraRadius + 1.6;
@@ -143,9 +143,9 @@ export const UPGRADES: Upgrade[] = [
   },
   {
     id: 'lightning',
-    name: '連鎖閃電',
-    desc: '定期電擊最近的敵人並向周圍連鎖；已有則 +1 連鎖數並增傷',
-    emoji: '⚡',
+    name: '連鎖星光',
+    desc: '定期照亮最近的小怪並向周圍連鎖；已有則 +1 連鎖數並增強',
+    emoji: '🌠',
     maxLevel: 10,
     apply: (s) => {
       s.lightningCount += 1;
@@ -154,9 +154,9 @@ export const UPGRADES: Upgrade[] = [
   },
   {
     id: 'nova',
-    name: '新星爆',
-    desc: '定期釋放向外擴張的衝擊波，炸傷周圍所有敵人；已有則擴大並增傷',
-    emoji: '💥',
+    name: '星光綻放',
+    desc: '定期釋放向外擴張的星光波，推開周圍小怪；已有則擴大並增強',
+    emoji: '🌸',
     maxLevel: 10,
     apply: (s) => {
       s.novaRadius = s.novaRadius === 0 ? 6 : s.novaRadius + 1;
@@ -165,9 +165,9 @@ export const UPGRADES: Upgrade[] = [
   },
   {
     id: 'boomerang',
-    name: '回力鏢',
-    desc: '定期丟出長矛飛出再飛回，沿途貫穿傷害敵人；已有則 +1 支並增傷',
-    emoji: '🪃',
+    name: '回旋彩帶',
+    desc: '定期丟出彩帶飛出再飛回，沿途推開小怪；已有則 +1 條並增強',
+    emoji: '🎀',
     maxLevel: 10,
     apply: (s) => {
       s.boomerangCount += 1;
@@ -177,8 +177,8 @@ export const UPGRADES: Upgrade[] = [
   // ===== 群控 =====
   {
     id: 'slowfield',
-    name: '減速光環',
-    desc: '身邊一圈的殭屍移動變慢；已有則擴大範圍',
+    name: '慢慢光圈',
+    desc: '身邊一圈的小怪移動變慢；已有則擴大範圍',
     emoji: '❄️',
     maxLevel: 5,
     apply: (s) => {
@@ -188,16 +188,16 @@ export const UPGRADES: Upgrade[] = [
   },
   {
     id: 'timeslow',
-    name: '時緩',
-    desc: '全場殭屍永久減速 8%',
+    name: '慢動作魔法',
+    desc: '全場小怪永久減速 8%',
     emoji: '🐌',
     maxLevel: 5,
     apply: (s) => (s.enemySpeedMul *= 0.92),
   },
   {
     id: 'freeze',
-    name: '冰凍彈',
-    desc: '子彈命中有機率短暫冰凍殭屍；已有則機率提升',
+    name: '冰晶魔法',
+    desc: '魔法命中有機率短暫冰凍小怪；已有則機率提升',
     emoji: '🧊',
     maxLevel: 5,
     apply: (s) => (s.freezeChance = Math.min(0.5, s.freezeChance + 0.08)),
@@ -205,9 +205,9 @@ export const UPGRADES: Upgrade[] = [
   // ===== 防禦／續航 =====
   {
     id: 'lifesteal',
-    name: '吸血',
-    desc: '擊殺殭屍回復生命（每秒回血有上限）；已有則上限提升',
-    emoji: '🩸',
+    name: '糖心回復',
+    desc: '擊退小怪回復生命（每秒回血有上限）；已有則上限提升',
+    emoji: '🍬',
     maxLevel: 5,
     apply: (s) => (s.lifestealOnKill += 0.35),
   },
@@ -221,9 +221,9 @@ export const UPGRADES: Upgrade[] = [
   },
   {
     id: 'armor',
-    name: '護甲',
-    desc: '受到的傷害減免 10%（最多 70%）',
-    emoji: '🛡️',
+    name: '守護禮服',
+    desc: '受到的碰撞傷害減免 10%（最多 70%）',
+    emoji: '👗',
     maxLevel: 5,
     apply: (s) => (s.damageReduction = Math.min(0.7, s.damageReduction + 0.1)),
   },
@@ -238,25 +238,25 @@ export const UPGRADES: Upgrade[] = [
   // ===== 進攻修飾 =====
   {
     id: 'crit',
-    name: '暴擊',
-    desc: '子彈有機率造成 2 倍傷害；已有則機率提升',
-    emoji: '💥',
+    name: '閃耀一擊',
+    desc: '星星魔法有機率造成 2 倍效果；已有則機率提升',
+    emoji: '💎',
     maxLevel: 5,
     apply: (s) => (s.critChance = Math.min(0.6, s.critChance + 0.1)),
   },
   {
     id: 'pierce',
-    name: '穿透',
-    desc: '子彈可貫穿 +1 隻殭屍不消失',
+    name: '穿透星光',
+    desc: '魔法可貫穿 +1 隻小怪不消失',
     emoji: '🎯',
     maxLevel: 4,
     apply: (s) => (s.pierce += 1),
   },
   {
     id: 'explode',
-    name: '爆裂彈',
-    desc: '子彈命中產生範圍爆炸；已有則擴大並增傷',
-    emoji: '🧨',
+    name: '糖果爆花',
+    desc: '星星命中後產生糖果花火；已有則擴大並增強',
+    emoji: '🍭',
     maxLevel: 5,
     apply: (s) => {
       s.explodeRadius = s.explodeRadius === 0 ? 3 : s.explodeRadius + 0.8;
