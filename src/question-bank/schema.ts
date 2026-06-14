@@ -14,11 +14,12 @@ export type QuestionGrade =
 
 export type QuestionSemester = 'a' | 'b';
 export type QuestionSubject = '國語' | '英語' | '數學';
+export type QuizSubject = '綜合' | QuestionSubject;
 export type QuestionExam = 'midterm' | 'final';
 
 export interface QuizSelection {
   grade: QuestionGrade;
-  subject: QuestionSubject;
+  subject: QuizSubject;
   exam: QuestionExam;
 }
 

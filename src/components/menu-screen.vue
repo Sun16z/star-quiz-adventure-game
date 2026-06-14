@@ -57,7 +57,7 @@
         <div class="mt-4 grid gap-3 lg:grid-cols-[1fr_0.8fr]">
           <div>
             <div class="mb-2 text-sm font-black text-white/75">選擇科目</div>
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <button
                 v-for="subject in questionSubjects"
                 :key="subject.id"
@@ -189,7 +189,7 @@ import {
   isQuestionSubject,
   type QuestionExam,
   type QuestionGrade,
-  type QuestionSubject,
+  type QuizSubject,
   type QuizSelection,
 } from '../game/question-bank';
 
@@ -212,7 +212,7 @@ const savedQuizGrade = localStorage.getItem(QUIZ_GRADE_KEY) ?? '';
 const savedQuizSubject = localStorage.getItem(QUIZ_SUBJECT_KEY) ?? '';
 const savedQuizExam = localStorage.getItem(QUIZ_EXAM_KEY) ?? '';
 const quizGrade = ref<QuestionGrade>(isQuestionGrade(savedQuizGrade) ? savedQuizGrade : DEFAULT_QUESTION_GRADE);
-const quizSubject = ref<QuestionSubject>(isQuestionSubject(savedQuizSubject) ? savedQuizSubject : DEFAULT_QUIZ_SELECTION.subject);
+const quizSubject = ref<QuizSubject>(isQuestionSubject(savedQuizSubject) ? savedQuizSubject : DEFAULT_QUIZ_SELECTION.subject);
 const quizExam = ref<QuestionExam>(isQuestionExam(savedQuizExam) ? savedQuizExam : DEFAULT_QUIZ_SELECTION.exam);
 const questionGrades = QUESTION_GRADES;
 const questionSubjects = QUESTION_SUBJECTS;
@@ -229,7 +229,7 @@ function selectQuizGrade(id: QuestionGrade) {
   localStorage.setItem(QUIZ_GRADE_KEY, id);
 }
 
-function selectQuizSubject(id: QuestionSubject) {
+function selectQuizSubject(id: QuizSubject) {
   quizSubject.value = id;
   localStorage.setItem(QUIZ_SUBJECT_KEY, id);
 }

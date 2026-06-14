@@ -1,9 +1,9 @@
 import { GENERATED_QUESTION_BANK } from './generated-question-bank';
 import { GRADE4B_QUESTION_BANK } from './grade4b-question-bank';
 import { ELEMENTARY_KANGXUAN_DATASET, ELEMENTARY_KANGXUAN_QUESTIONS } from '../question-bank/elementary-kangxuan';
-import type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection } from '../question-bank/schema';
+import type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection, QuizSubject } from '../question-bank/schema';
 
-export type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection } from '../question-bank/schema';
+export type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection, QuizSubject } from '../question-bank/schema';
 
 export interface QuestionGradeInfo {
   id: QuestionGrade;
@@ -28,7 +28,10 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-export const QUESTION_SUBJECTS: Array<{ id: QuestionSubject; label: string; desc: string; icon: string }> = [
+export const CORE_QUESTION_SUBJECTS: readonly QuestionSubject[] = ['國語', '英語', '數學'];
+
+export const QUESTION_SUBJECTS: Array<{ id: QuizSubject; label: string; desc: string; icon: string }> = [
+  { id: '綜合', label: '綜合版', desc: '國語、英語、數學混合出題', icon: '🌈' },
   { id: '國語', label: '國語', desc: '字詞、句型、閱讀、寫作', icon: '📖' },
   { id: '英語', label: '英語', desc: '單字、句型、閱讀理解', icon: '🔤' },
   { id: '數學', label: '數學', desc: '計算、圖形、應用題', icon: '➗' },
@@ -50,7 +53,7 @@ export const QUESTION_GRADES: QuestionGradeInfo[] = ELEMENTARY_KANGXUAN_DATASET.
 export const DEFAULT_QUESTION_GRADE: QuestionGrade = 'grade2b';
 export const DEFAULT_QUIZ_SELECTION: QuizSelection = {
   grade: DEFAULT_QUESTION_GRADE,
-  subject: '國語',
+  subject: '綜合',
   exam: 'final',
 };
 
@@ -288,7 +291,7 @@ export function isQuestionGrade(value: string): value is QuestionGrade {
   return QUESTION_GRADES.some((g) => g.id === value);
 }
 
-export function isQuestionSubject(value: string): value is QuestionSubject {
+export function isQuestionSubject(value: string): value is QuizSubject {
   return QUESTION_SUBJECTS.some((subject) => subject.id === value);
 }
 
@@ -298,6 +301,10 @@ export function isQuestionExam(value: string): value is QuestionExam {
 
 export function getQuestionExamInfo(exam: QuestionExam) {
   return QUESTION_EXAMS.find((item) => item.id === exam) ?? QUESTION_EXAMS[0];
+}
+
+export function getQuestionSubjectInfo(subject: QuizSubject) {
+  return QUESTION_SUBJECTS.find((item) => item.id === subject) ?? QUESTION_SUBJECTS[0];
 }
 
 export function normalizeQuizSelection(selection?: Partial<QuizSelection>): QuizSelection {
@@ -311,27 +318,43 @@ export function normalizeQuizSelection(selection?: Partial<QuizSelection>): Quiz
 export function getQuizSelectionLabel(selection: QuizSelection): string {
   const normalized = normalizeQuizSelection(selection);
   const gradeInfo = getQuestionGradeInfo(normalized.grade);
+  const subjectInfo = getQuestionSubjectInfo(normalized.subject);
   const examInfo = getQuestionExamInfo(normalized.exam);
-  return `${gradeInfo.shortLabel}・${normalized.subject}・${examInfo.label}`;
+  return `${gradeInfo.shortLabel}・${subjectInfo.label}・${examInfo.label}`;
 }
 
 const RECENT_QUESTION_LIMIT = 30;
+const RECENT_SUBJECT_LIMIT = 2;
+const RECENT_SKILL_LIMIT = 4;
 const recentQuestionIds = new Map<string, string[]>();
+const recentSubjects = new Map<string, string[]>();
+const recentSkills = new Map<string, string[]>();
 
 export function rollQuestion(selectionOrGrade: QuizSelection | QuestionGrade): QuizQuestion {
   const selection = typeof selectionOrGrade === 'string'
     ? normalizeQuizSelection({ grade: selectionOrGrade })
     : normalizeQuizSelection(selectionOrGrade);
   const selectionKey = `${selection.grade}:${selection.subject}:${selection.exam}`;
+  const selectedSubjects = selection.subject === '綜合' ? CORE_QUESTION_SUBJECTS : [selection.subject];
   const strictPool = QUESTION_BANK.filter(
-    (q) => q.grade === selection.grade && q.subject === selection.subject && q.exam === selection.exam,
+    (q) => q.grade === selection.grade && selectedSubjects.includes(q.subject as QuestionSubject) && q.exam === selection.exam,
   );
-  const subjectPool = QUESTION_BANK.filter((q) => q.grade === selection.grade && q.subject === selection.subject);
+  const subjectPool = QUESTION_BANK.filter((q) => q.grade === selection.grade && selectedSubjects.includes(q.subject as QuestionSubject));
   const gradePool = QUESTION_BANK.filter((q) => q.grade === selection.grade);
   const usable = strictPool.length > 0 ? strictPool : subjectPool.length > 0 ? subjectPool : gradePool.length > 0 ? gradePool : QUESTION_BANK;
   const recentIds = recentQuestionIds.get(selectionKey) ?? [];
+  const subjectHistory = recentSubjects.get(selectionKey) ?? [];
+  const skillHistory = recentSkills.get(selectionKey) ?? [];
   let candidates = usable.filter((q) => !recentIds.includes(q.id));
   if (candidates.length === 0) candidates = usable;
+
+  if (selection.subject === '綜合') {
+    const variedSubjects = candidates.filter((q) => !subjectHistory.includes(q.subject));
+    if (variedSubjects.length >= 6) candidates = variedSubjects;
+  }
+
+  const variedSkills = candidates.filter((q) => !skillHistory.includes(q.skill ?? ''));
+  if (variedSkills.length >= 6) candidates = variedSkills;
 
   const question = candidates[Math.floor(Math.random() * candidates.length)];
   rememberQuestion(selectionKey, question);
@@ -341,6 +364,15 @@ export function rollQuestion(selectionOrGrade: QuizSelection | QuestionGrade): Q
 function rememberQuestion(selectionKey: string, question: QuizQuestion) {
   const ids = [question.id, ...(recentQuestionIds.get(selectionKey) ?? [])].slice(0, RECENT_QUESTION_LIMIT);
   recentQuestionIds.set(selectionKey, ids);
+
+  const subjects = [question.subject, ...(recentSubjects.get(selectionKey) ?? [])].slice(0, RECENT_SUBJECT_LIMIT);
+  recentSubjects.set(selectionKey, subjects);
+
+  const skill = question.skill ?? '';
+  if (skill) {
+    const skills = [skill, ...(recentSkills.get(selectionKey) ?? [])].slice(0, RECENT_SKILL_LIMIT);
+    recentSkills.set(selectionKey, skills);
+  }
 }
 
 function shuffleQuestionOptions(question: QuizQuestion): QuizQuestion {
