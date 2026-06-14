@@ -315,7 +315,7 @@ export function getQuizSelectionLabel(selection: QuizSelection): string {
   return `${gradeInfo.shortLabel}・${normalized.subject}・${examInfo.label}`;
 }
 
-const RECENT_QUESTION_LIMIT = 10;
+const RECENT_QUESTION_LIMIT = 30;
 const recentQuestionIds = new Map<string, string[]>();
 
 export function rollQuestion(selectionOrGrade: QuizSelection | QuestionGrade): QuizQuestion {

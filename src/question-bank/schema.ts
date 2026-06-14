@@ -38,6 +38,7 @@ export interface ElementaryQuestion {
   subject: QuestionSubject;
   exam: QuestionExam;
   examLabel: string;
+  unit: string;
   skill: string;
   difficulty: number;
   prompt: string;
@@ -58,6 +59,12 @@ export interface ElementaryBankDataset {
     url: string;
     usedFor: string;
   };
+  sourceReferences?: Array<{
+    title: string;
+    url: string;
+    usedFor: string;
+  }>;
+  targetPerCombo?: number;
   grades: Array<{
     id: QuestionGrade;
     grade: number;

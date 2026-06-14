@@ -10,9 +10,11 @@ const expectedGrades = [
 ];
 const expectedSubjects = ['國語', '英語', '數學'];
 const expectedExams = ['midterm', 'final'];
+const expectedPerCombo = 30;
 const errors = [];
 const ids = new Set();
 const comboCounts = new Map();
+const comboPrompts = new Map();
 
 for (const question of dataset.questions) {
   if (ids.has(question.id)) errors.push(`duplicate id: ${question.id}`);
@@ -29,6 +31,9 @@ for (const question of dataset.questions) {
 
   const combo = `${question.grade}|${question.subject}|${question.exam}`;
   comboCounts.set(combo, (comboCounts.get(combo) ?? 0) + 1);
+  const promptKey = `${combo}|${question.prompt}`;
+  if (comboPrompts.has(promptKey)) errors.push(`duplicate prompt in combo: ${combo} / ${question.prompt}`);
+  comboPrompts.set(promptKey, question.id);
 }
 
 for (const grade of expectedGrades) {
@@ -36,7 +41,7 @@ for (const grade of expectedGrades) {
     for (const exam of expectedExams) {
       const combo = `${grade}|${subject}|${exam}`;
       const count = comboCounts.get(combo) ?? 0;
-      if (count < 6) errors.push(`combo has fewer than 6 questions: ${combo} (${count})`);
+      if (count !== expectedPerCombo) errors.push(`combo should have ${expectedPerCombo} questions: ${combo} (${count})`);
     }
   }
 }
