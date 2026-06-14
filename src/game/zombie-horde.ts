@@ -4,6 +4,7 @@ import { CONFIG } from './config';
 import { SpatialGrid } from './spatial-grid';
 import { Obstacle, resolveObstacles } from './obstacles';
 import { BossHazards } from './boss-hazards';
+import { splitPublicAssetPath } from './assets';
 
 interface ZombieType {
   path: string;
@@ -99,8 +100,8 @@ export class ZombieHorde {
   private async init() {
     const containers = await Promise.all(
       ZOMBIE_TYPES.map((t) => {
-        const slash = t.path.lastIndexOf('/');
-        return SceneLoader.LoadAssetContainerAsync(t.path.slice(0, slash + 1), t.path.slice(slash + 1), this.scene);
+        const { rootUrl, file } = splitPublicAssetPath(t.path);
+        return SceneLoader.LoadAssetContainerAsync(rootUrl, file, this.scene);
       }),
     );
 

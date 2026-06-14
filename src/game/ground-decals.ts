@@ -1,6 +1,7 @@
 import { Scene, MeshBuilder, StandardMaterial, DynamicTexture, Color3, TransformNode, SceneLoader } from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { CONFIG } from './config';
+import { splitPublicAssetPath } from './assets';
 
 /** 路磚原生尺寸（8×8） */
 const TILE = 8;
@@ -119,8 +120,8 @@ export async function buildRoads(scene: Scene, heightAt: (x: number, z: number) 
   ];
   const templates = await Promise.all(
     paths.map(async (p) => {
-      const slash = p.lastIndexOf('/');
-      const res = await SceneLoader.ImportMeshAsync('', p.slice(0, slash + 1), p.slice(slash + 1), scene);
+      const { rootUrl, file } = splitPublicAssetPath(p);
+      const res = await SceneLoader.ImportMeshAsync('', rootUrl, file, scene);
       res.animationGroups.forEach((g) => g.stop());
       const root = res.meshes[0] as TransformNode;
       res.meshes.forEach((m) => (m.isPickable = false));

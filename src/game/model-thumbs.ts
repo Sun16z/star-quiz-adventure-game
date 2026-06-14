@@ -9,6 +9,7 @@ import {
   SceneLoader,
 } from '@babylonjs/core';
 import '@babylonjs/loaders';
+import { splitPublicAssetPath } from './assets';
 
 /**
  * 將一組模型離屏渲染成靜態縮圖（dataURL），用一個暫時引擎依序產生後釋放，
@@ -36,8 +37,8 @@ export async function renderModelThumbnails(
     dir.intensity = 0.7;
 
     try {
-      const slash = model.lastIndexOf('/');
-      const res = await SceneLoader.ImportMeshAsync('', model.slice(0, slash + 1), model.slice(slash + 1), scene);
+      const { rootUrl, file } = splitPublicAssetPath(model);
+      const res = await SceneLoader.ImportMeshAsync('', rootUrl, file, scene);
       res.animationGroups.forEach((g) => g.stop());
       const root = res.meshes[0];
       const b1 = root.getHierarchyBoundingVectors();

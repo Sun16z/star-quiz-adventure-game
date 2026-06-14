@@ -39,7 +39,7 @@
       <!-- 題庫 -->
       <div>
         <div class="mb-2 text-lg font-black">選擇題庫</div>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <button
             v-for="g in questionGrades"
             :key="g.id"

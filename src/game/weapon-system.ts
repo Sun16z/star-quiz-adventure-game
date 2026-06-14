@@ -17,6 +17,7 @@ import { Boss } from './boss';
 import { RunState } from './upgrades';
 import { sound } from './sound';
 import { hitSpark } from './effects';
+import { splitPublicAssetPath } from './assets';
 
 /** 多重彈之間的角度間隔（弧度） */
 const SPREAD_STEP = 0.16;
@@ -86,7 +87,8 @@ export class WeaponSystem {
   /** 載入飛刀模型，合併為單一 mesh 並承接 thin instance 緩衝，替換球體 */
   private async loadKnife(scene: Scene) {
     try {
-      const res = await SceneLoader.ImportMeshAsync('', '/models/zombie/', 'weapon_knife.glb', scene);
+      const { rootUrl, file } = splitPublicAssetPath('/models/zombie/weapon_knife.glb');
+      const res = await SceneLoader.ImportMeshAsync('', rootUrl, file, scene);
       res.animationGroups.forEach((g) => g.stop());
       const parts = res.meshes.filter((m): m is Mesh => m instanceof Mesh && m.getTotalVertices() > 0);
       const merged = Mesh.MergeMeshes(parts, true, true, undefined, false, true);

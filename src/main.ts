@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import { DracoCompression } from '@babylonjs/core';
 import App from './App.vue';
 import './style.css';
+import { publicAssetPath } from './game/assets';
 
 /**
  * 模型皆以 Draco 壓縮（gltf-transform），解碼器改用自帶檔（public/draco/，同源），
@@ -9,9 +10,9 @@ import './style.css';
  */
 DracoCompression.Configuration = {
   decoder: {
-    wasmUrl: '/draco/draco_wasm_wrapper_gltf.js',
-    wasmBinaryUrl: '/draco/draco_decoder_gltf.wasm',
-    fallbackUrl: '/draco/draco_decoder_gltf.js',
+    wasmUrl: publicAssetPath('/draco/draco_wasm_wrapper_gltf.js'),
+    wasmBinaryUrl: publicAssetPath('/draco/draco_decoder_gltf.wasm'),
+    fallbackUrl: publicAssetPath('/draco/draco_decoder_gltf.js'),
   },
 };
 

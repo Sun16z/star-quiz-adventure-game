@@ -1,6 +1,7 @@
 import { GENERATED_QUESTION_BANK } from './generated-question-bank';
+import { GRADE4B_QUESTION_BANK } from './grade4b-question-bank';
 
-export type QuestionGrade = 'grade2b' | 'grade5b';
+export type QuestionGrade = 'grade2b' | 'grade4b' | 'grade5b';
 
 export interface QuestionGradeInfo {
   id: QuestionGrade;
@@ -27,6 +28,13 @@ export const QUESTION_GRADES: QuestionGradeInfo[] = [
     label: '二年級下學期',
     desc: '國語、數學、生活、英語、自然觀察',
     subjects: ['國語', '數學', '生活', '英語', '自然'],
+  },
+  {
+    id: 'grade4b',
+    shortLabel: '四下',
+    label: '四年級下學期期末',
+    desc: '國語、英語、數學期末複習',
+    subjects: ['國語', '英語', '數學'],
   },
   {
     id: 'grade5b',
@@ -258,7 +266,11 @@ const BASE_QUESTION_BANK: QuizQuestion[] = [
   },
 ];
 
-export const QUESTION_BANK: QuizQuestion[] = [...BASE_QUESTION_BANK, ...GENERATED_QUESTION_BANK];
+export const QUESTION_BANK: QuizQuestion[] = [
+  ...BASE_QUESTION_BANK,
+  ...GENERATED_QUESTION_BANK,
+  ...GRADE4B_QUESTION_BANK,
+];
 
 export function getQuestionGradeInfo(grade: QuestionGrade): QuestionGradeInfo {
   return QUESTION_GRADES.find((g) => g.id === grade) ?? QUESTION_GRADES[0];

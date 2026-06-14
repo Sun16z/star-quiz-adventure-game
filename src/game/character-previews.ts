@@ -10,6 +10,7 @@ import {
 } from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { createPrincessModel, type PrincessStyle } from './princess-model';
+import { splitPublicAssetPath } from './assets';
 
 export interface PreviewHandle {
   dispose: () => void;
@@ -56,8 +57,8 @@ export async function setupCharacterPreview(
 }
 
 async function loadPreviewModel(scene: Scene, modelPath: string) {
-  const slash = modelPath.lastIndexOf('/');
-  const res = await SceneLoader.ImportMeshAsync('', modelPath.slice(0, slash + 1), modelPath.slice(slash + 1), scene);
+  const { rootUrl, file } = splitPublicAssetPath(modelPath);
+  const res = await SceneLoader.ImportMeshAsync('', rootUrl, file, scene);
   const idle = res.animationGroups.find((g) => /idle/i.test(g.name)) ?? res.animationGroups[0];
   res.animationGroups.forEach((g) => g.stop());
   idle?.play(true);

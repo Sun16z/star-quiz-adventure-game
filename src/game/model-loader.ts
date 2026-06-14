@@ -1,5 +1,6 @@
 import { Scene, SceneLoader, TransformNode, AnimationGroup } from '@babylonjs/core';
 import '@babylonjs/loaders';
+import { splitPublicAssetPath } from './assets';
 // Draco 解碼器設定見 src/main.ts（進入點設定，全載入路徑共用）
 
 /**
@@ -13,10 +14,7 @@ export async function loadModel(
   preferWalk = false,
 ): Promise<TransformNode | null> {
   try {
-    const slash = path.lastIndexOf('/');
-    const rootUrl = path.slice(0, slash + 1);
-    const file = path.slice(slash + 1);
-
+    const { rootUrl, file } = splitPublicAssetPath(path);
     const result = await SceneLoader.ImportMeshAsync('', rootUrl, file, scene);
     const root = result.meshes[0];
 
@@ -60,8 +58,8 @@ export async function loadCharacter(
   targetHeight: number,
 ): Promise<AnimatedModel | null> {
   try {
-    const slash = path.lastIndexOf('/');
-    const result = await SceneLoader.ImportMeshAsync('', path.slice(0, slash + 1), path.slice(slash + 1), scene);
+    const { rootUrl, file } = splitPublicAssetPath(path);
+    const result = await SceneLoader.ImportMeshAsync('', rootUrl, file, scene);
     const root = result.meshes[0];
 
     const groups = result.animationGroups;
