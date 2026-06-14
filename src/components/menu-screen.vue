@@ -38,6 +38,22 @@
 
       <!-- 題庫 -->
       <div>
+        <div class="mb-2 text-lg font-black">選擇出版社</div>
+        <div class="mb-4 grid grid-cols-3 gap-2">
+          <button
+            v-for="publisher in questionPublishers"
+            :key="publisher.id"
+            type="button"
+            class="min-h-20 rounded-xl p-3 text-left ring-2 transition active:scale-[0.98]"
+            :class="quizPublisher === publisher.id ? 'bg-fuchsia-300/20 ring-fuchsia-200' : 'bg-white/5 ring-white/10 hover:ring-white/30'"
+            @click="selectQuizPublisher(publisher.id)"
+          >
+            <div class="text-2xl">{{ publisher.icon }}</div>
+            <div class="mt-1 text-base font-black">{{ publisher.label }}</div>
+            <div class="text-[0.68rem] leading-snug text-white/55">{{ publisher.desc }}</div>
+          </button>
+        </div>
+
         <div class="mb-2 text-lg font-black">選擇年級學期</div>
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           <button
@@ -179,16 +195,20 @@ import { PERMA, permaCost, type MetaData, type PermaUpgrade } from '../game/meta
 import { setupCharacterPreview, type PreviewHandle } from '../game/character-previews';
 import {
   DEFAULT_QUESTION_GRADE,
+  DEFAULT_QUESTION_PUBLISHER,
   DEFAULT_QUIZ_SELECTION,
   QUESTION_EXAMS,
   QUESTION_GRADES,
+  QUESTION_PUBLISHERS,
   QUESTION_SUBJECTS,
   getQuizSelectionLabel,
   isQuestionExam,
   isQuestionGrade,
+  isQuestionPublisher,
   isQuestionSubject,
   type QuestionExam,
   type QuestionGrade,
+  type QuestionPublisher,
   type QuizSubject,
   type QuizSelection,
 } from '../game/question-bank';
@@ -205,24 +225,34 @@ const emit = defineEmits<{
 const characters = CHARACTERS;
 const perma = PERMA;
 const selectedId = ref('matt');
+const QUIZ_PUBLISHER_KEY = 'animal-survivors:quiz-publisher';
 const QUIZ_GRADE_KEY = 'animal-survivors:quiz-grade';
 const QUIZ_SUBJECT_KEY = 'animal-survivors:quiz-subject';
 const QUIZ_EXAM_KEY = 'animal-survivors:quiz-exam';
+const savedQuizPublisher = localStorage.getItem(QUIZ_PUBLISHER_KEY) ?? '';
 const savedQuizGrade = localStorage.getItem(QUIZ_GRADE_KEY) ?? '';
 const savedQuizSubject = localStorage.getItem(QUIZ_SUBJECT_KEY) ?? '';
 const savedQuizExam = localStorage.getItem(QUIZ_EXAM_KEY) ?? '';
+const quizPublisher = ref<QuestionPublisher>(isQuestionPublisher(savedQuizPublisher) ? savedQuizPublisher : DEFAULT_QUESTION_PUBLISHER);
 const quizGrade = ref<QuestionGrade>(isQuestionGrade(savedQuizGrade) ? savedQuizGrade : DEFAULT_QUESTION_GRADE);
 const quizSubject = ref<QuizSubject>(isQuestionSubject(savedQuizSubject) ? savedQuizSubject : DEFAULT_QUIZ_SELECTION.subject);
 const quizExam = ref<QuestionExam>(isQuestionExam(savedQuizExam) ? savedQuizExam : DEFAULT_QUIZ_SELECTION.exam);
+const questionPublishers = QUESTION_PUBLISHERS;
 const questionGrades = QUESTION_GRADES;
 const questionSubjects = QUESTION_SUBJECTS;
 const questionExams = QUESTION_EXAMS;
 const quizSelection = computed<QuizSelection>(() => ({
+  publisher: quizPublisher.value,
   grade: quizGrade.value,
   subject: quizSubject.value,
   exam: quizExam.value,
 }));
 const selectedQuizLabel = computed(() => getQuizSelectionLabel(quizSelection.value));
+
+function selectQuizPublisher(id: QuestionPublisher) {
+  quizPublisher.value = id;
+  localStorage.setItem(QUIZ_PUBLISHER_KEY, id);
+}
 
 function selectQuizGrade(id: QuestionGrade) {
   quizGrade.value = id;

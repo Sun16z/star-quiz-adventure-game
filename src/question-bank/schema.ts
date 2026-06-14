@@ -16,8 +16,10 @@ export type QuestionSemester = 'a' | 'b';
 export type QuestionSubject = '國語' | '英語' | '數學';
 export type QuizSubject = '綜合' | QuestionSubject;
 export type QuestionExam = 'midterm' | 'final';
+export type QuestionPublisher = '康軒' | '翰林' | '南一';
 
 export interface QuizSelection {
+  publisher: QuestionPublisher;
   grade: QuestionGrade;
   subject: QuizSubject;
   exam: QuestionExam;
@@ -30,7 +32,7 @@ export interface QuestionSource {
 
 export interface ElementaryQuestion {
   id: string;
-  publisher: '康軒';
+  publisher: QuestionPublisher;
   grade: QuestionGrade;
   gradeNumber: number;
   gradeLabel: string;
@@ -53,7 +55,8 @@ export interface ElementaryBankDataset {
   schemaVersion: number;
   title: string;
   description: string;
-  publisher: '康軒';
+  publisher?: QuestionPublisher;
+  publishers?: QuestionPublisher[];
   licenseNote: string;
   sourceReference: {
     title: string;

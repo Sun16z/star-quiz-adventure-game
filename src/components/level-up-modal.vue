@@ -130,7 +130,7 @@ const selectedChoice = computed(() => {
 });
 
 watch(
-  () => [props.level, props.quizSelection.grade, props.quizSelection.subject, props.quizSelection.exam],
+  () => [props.level, props.quizSelection.publisher, props.quizSelection.grade, props.quizSelection.subject, props.quizSelection.exam],
   resetQuestion,
 );
 

@@ -3,6 +3,11 @@ import { dirname, resolve } from 'node:path';
 
 const root = process.cwd();
 const targetPerCombo = 30;
+const publishers = [
+  { id: '康軒', code: 'kx' },
+  { id: '翰林', code: 'hl' },
+  { id: '南一', code: 'ny' },
+];
 const grades = [1, 2, 3, 4, 5, 6];
 const semesters = [
   { id: 'a', label: '上學期' },
@@ -17,9 +22,9 @@ const exams = [
 const subjectCode = { 國語: 'mandarin', 英語: 'english', 數學: 'math' };
 const sourceReferences = [
   {
-    title: '學習方舟：康軒國小題庫免費下載',
+    title: '學習方舟：全國中小學題庫網',
     url: 'https://www.studyark.org/s/kangxuanguoxiao/',
-    usedFor: '確認康軒國小題庫站的版本與試卷型態描述。',
+    usedFor: '確認國小題庫站列有康軒、翰林、南一等版本與期中/期末篩選。',
   },
   {
     title: '米蘭老師教育資訊室：國中國小題庫考古題下載網站',
@@ -27,43 +32,47 @@ const sourceReferences = [
     usedFor: '確認國小年級、版本、科目、上下學期與期中期末分類方式。',
   },
   {
-    title: '康軒國小 Kahoot 題目平台',
-    url: 'https://digitalmaster.knsh.com.tw/test/quiz/kahoot/e/',
-    usedFor: '確認康軒國小題庫平台涵蓋國語、數學、英語等科目。',
+    title: 'OneClass 各學校學制教科書版本查詢',
+    url: 'https://version.oneclass.com.tw/',
+    usedFor: '確認國小教材版本會依學校與學年度而不同，並含南一、翰林、康軒等版本。',
   },
 ];
 
 const questions = [];
 
-for (const grade of grades) {
-  for (const semester of semesters) {
-    for (const subject of subjects) {
-      for (const exam of exams) {
-        const context = {
-          grade,
-          semester: semester.id,
-          semesterLabel: semester.label,
-          subject,
-          exam: exam.id,
-          examLabel: exam.label,
-        };
-        const makers = {
-          國語: mandarinQuestions,
-          英語: englishQuestions,
-          數學: mathQuestions,
-        };
-        questions.push(...ensureCount(context, makers[subject](context), targetPerCombo));
+for (const publisher of publishers) {
+  for (const grade of grades) {
+    for (const semester of semesters) {
+      for (const subject of subjects) {
+        for (const exam of exams) {
+          const context = {
+            publisher: publisher.id,
+            publisherCode: publisher.code,
+            grade,
+            semester: semester.id,
+            semesterLabel: semester.label,
+            subject,
+            exam: exam.id,
+            examLabel: exam.label,
+          };
+          const makers = {
+            國語: mandarinQuestions,
+            英語: englishQuestions,
+            數學: mathQuestions,
+          };
+          questions.push(...ensureCount(context, makers[subject](context), targetPerCombo));
+        }
       }
     }
   }
 }
 
 const dataset = {
-  schemaVersion: 2,
-  title: '台灣國小康軒版國英數題庫',
-  description: '原創選擇題資料集，依國小一到六年級、上下學期、國語/英語/數學、期中/期末分類，可供遊戲或練習系統重用。',
-  publisher: '康軒',
-  licenseNote: '題目為本專案原創題型，用於對應康軒版國小常見段考範圍；未複製第三方考卷原文。',
+  schemaVersion: 3,
+  title: '台灣國小三出版社國英數題庫',
+  description: '原創選擇題資料集，依康軒/翰林/南一、國小一到六年級、上下學期、國語/英語/數學、期中/期末分類，可供遊戲或練習系統重用。',
+  publishers: publishers.map((publisher) => publisher.id),
+  licenseNote: '題目為本專案原創題型，用於對應台灣國小常見段考範圍；未複製第三方考卷原文。',
   sourceReference: sourceReferences[1],
   sourceReferences,
   targetPerCombo,
@@ -78,8 +87,20 @@ const dataset = {
   questions,
 };
 
-writeJson('src/question-bank/elementary-kangxuan.json', dataset);
-writeJson('public/question-bank/elementary-kangxuan.json', dataset);
+const kangxuanDataset = {
+  ...dataset,
+  schemaVersion: 3,
+  title: '台灣國小康軒版國英數題庫',
+  description: '原創選擇題資料集，依康軒、國小一到六年級、上下學期、國語/英語/數學、期中/期末分類，可供遊戲或練習系統重用。',
+  publisher: '康軒',
+  publishers: ['康軒'],
+  questions: questions.filter((question) => question.publisher === '康軒'),
+};
+
+writeJson('src/question-bank/elementary-publishers.json', dataset);
+writeJson('public/question-bank/elementary-publishers.json', dataset);
+writeJson('src/question-bank/elementary-kangxuan.json', kangxuanDataset);
+writeJson('public/question-bank/elementary-kangxuan.json', kangxuanDataset);
 
 function writeJson(path, value) {
   const output = resolve(root, path);
@@ -89,7 +110,7 @@ function writeJson(path, value) {
 
 function ensureCount(context, list, count) {
   if (list.length !== count) {
-    throw new Error(`${context.grade}${context.semester}-${context.subject}-${context.exam} generated ${list.length}, expected ${count}`);
+    throw new Error(`${context.publisher}-${context.grade}${context.semester}-${context.subject}-${context.exam} generated ${list.length}, expected ${count}`);
   }
   return list;
 }
@@ -97,8 +118,8 @@ function ensureCount(context, list, count) {
 function baseMeta(context, serial, skill, difficulty, unit) {
   const gradeId = `grade${context.grade}${context.semester}`;
   return {
-    id: `kx-${gradeId}-${context.exam}-${subjectCode[context.subject]}-${String(serial).padStart(2, '0')}`,
-    publisher: '康軒',
+    id: `${context.publisherCode}-${gradeId}-${context.exam}-${subjectCode[context.subject]}-${String(serial).padStart(2, '0')}`,
+    publisher: context.publisher,
     grade: gradeId,
     gradeNumber: context.grade,
     gradeLabel: `${context.grade}年級${context.semesterLabel}`,

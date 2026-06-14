@@ -1,9 +1,9 @@
 import { GENERATED_QUESTION_BANK } from './generated-question-bank';
 import { GRADE4B_QUESTION_BANK } from './grade4b-question-bank';
-import { ELEMENTARY_KANGXUAN_DATASET, ELEMENTARY_KANGXUAN_QUESTIONS } from '../question-bank/elementary-kangxuan';
-import type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection, QuizSubject } from '../question-bank/schema';
+import { ELEMENTARY_PUBLISHERS_DATASET, ELEMENTARY_PUBLISHERS_QUESTIONS } from '../question-bank/elementary-publishers';
+import type { QuestionExam, QuestionGrade, QuestionPublisher, QuestionSubject, QuizSelection, QuizSubject } from '../question-bank/schema';
 
-export type { QuestionExam, QuestionGrade, QuestionSubject, QuizSelection, QuizSubject } from '../question-bank/schema';
+export type { QuestionExam, QuestionGrade, QuestionPublisher, QuestionSubject, QuizSelection, QuizSubject } from '../question-bank/schema';
 
 export interface QuestionGradeInfo {
   id: QuestionGrade;
@@ -19,7 +19,7 @@ export interface QuizQuestion {
   subject: string;
   exam?: QuestionExam;
   examLabel?: string;
-  publisher?: string;
+  publisher?: QuestionPublisher;
   skill?: string;
   difficulty?: number;
   prompt: string;
@@ -29,6 +29,12 @@ export interface QuizQuestion {
 }
 
 export const CORE_QUESTION_SUBJECTS: readonly QuestionSubject[] = ['國語', '英語', '數學'];
+
+export const QUESTION_PUBLISHERS: Array<{ id: QuestionPublisher; label: string; desc: string; icon: string }> = [
+  { id: '康軒', label: '康軒', desc: '康軒版題庫', icon: '🟢' },
+  { id: '翰林', label: '翰林', desc: '翰林版題庫', icon: '🔵' },
+  { id: '南一', label: '南一', desc: '南一版題庫', icon: '🟠' },
+];
 
 export const QUESTION_SUBJECTS: Array<{ id: QuizSubject; label: string; desc: string; icon: string }> = [
   { id: '綜合', label: '綜合版', desc: '國語、英語、數學混合出題', icon: '🌈' },
@@ -42,16 +48,18 @@ export const QUESTION_EXAMS: Array<{ id: QuestionExam; label: string; desc: stri
   { id: 'final', label: '期末考', desc: '後半學期與總複習', icon: '🏁' },
 ];
 
-export const QUESTION_GRADES: QuestionGradeInfo[] = ELEMENTARY_KANGXUAN_DATASET.grades.map((grade) => ({
+export const QUESTION_GRADES: QuestionGradeInfo[] = ELEMENTARY_PUBLISHERS_DATASET.grades.map((grade) => ({
   id: grade.id,
   shortLabel: `${toChineseNumber(grade.grade)}${grade.semester === 'a' ? '上' : '下'}`,
-  label: `康軒${toChineseNumber(grade.grade)}年級${grade.semester === 'a' ? '上學期' : '下學期'}`,
+  label: `${toChineseNumber(grade.grade)}年級${grade.semester === 'a' ? '上學期' : '下學期'}`,
   desc: '國語、英語、數學｜期中/期末',
   subjects: ['國語', '英語', '數學'],
 }));
 
+export const DEFAULT_QUESTION_PUBLISHER: QuestionPublisher = '康軒';
 export const DEFAULT_QUESTION_GRADE: QuestionGrade = 'grade2b';
 export const DEFAULT_QUIZ_SELECTION: QuizSelection = {
+  publisher: DEFAULT_QUESTION_PUBLISHER,
   grade: DEFAULT_QUESTION_GRADE,
   subject: '綜合',
   exam: 'final',
@@ -277,7 +285,7 @@ const BASE_QUESTION_BANK: QuizQuestion[] = [
 ];
 
 export const QUESTION_BANK: QuizQuestion[] = [
-  ...ELEMENTARY_KANGXUAN_QUESTIONS,
+  ...ELEMENTARY_PUBLISHERS_QUESTIONS,
   ...BASE_QUESTION_BANK,
   ...GENERATED_QUESTION_BANK,
   ...GRADE4B_QUESTION_BANK,
@@ -289,6 +297,10 @@ export function getQuestionGradeInfo(grade: QuestionGrade): QuestionGradeInfo {
 
 export function isQuestionGrade(value: string): value is QuestionGrade {
   return QUESTION_GRADES.some((g) => g.id === value);
+}
+
+export function isQuestionPublisher(value: string): value is QuestionPublisher {
+  return QUESTION_PUBLISHERS.some((publisher) => publisher.id === value);
 }
 
 export function isQuestionSubject(value: string): value is QuizSubject {
@@ -307,8 +319,13 @@ export function getQuestionSubjectInfo(subject: QuizSubject) {
   return QUESTION_SUBJECTS.find((item) => item.id === subject) ?? QUESTION_SUBJECTS[0];
 }
 
+export function getQuestionPublisherInfo(publisher: QuestionPublisher) {
+  return QUESTION_PUBLISHERS.find((item) => item.id === publisher) ?? QUESTION_PUBLISHERS[0];
+}
+
 export function normalizeQuizSelection(selection?: Partial<QuizSelection>): QuizSelection {
   return {
+    publisher: selection?.publisher && isQuestionPublisher(selection.publisher) ? selection.publisher : DEFAULT_QUIZ_SELECTION.publisher,
     grade: selection?.grade && isQuestionGrade(selection.grade) ? selection.grade : DEFAULT_QUIZ_SELECTION.grade,
     subject: selection?.subject && isQuestionSubject(selection.subject) ? selection.subject : DEFAULT_QUIZ_SELECTION.subject,
     exam: selection?.exam && isQuestionExam(selection.exam) ? selection.exam : DEFAULT_QUIZ_SELECTION.exam,
@@ -317,10 +334,11 @@ export function normalizeQuizSelection(selection?: Partial<QuizSelection>): Quiz
 
 export function getQuizSelectionLabel(selection: QuizSelection): string {
   const normalized = normalizeQuizSelection(selection);
+  const publisherInfo = getQuestionPublisherInfo(normalized.publisher);
   const gradeInfo = getQuestionGradeInfo(normalized.grade);
   const subjectInfo = getQuestionSubjectInfo(normalized.subject);
   const examInfo = getQuestionExamInfo(normalized.exam);
-  return `${gradeInfo.shortLabel}・${subjectInfo.label}・${examInfo.label}`;
+  return `${publisherInfo.label}・${gradeInfo.shortLabel}・${subjectInfo.label}・${examInfo.label}`;
 }
 
 const RECENT_QUESTION_LIMIT = 30;
@@ -334,13 +352,15 @@ export function rollQuestion(selectionOrGrade: QuizSelection | QuestionGrade): Q
   const selection = typeof selectionOrGrade === 'string'
     ? normalizeQuizSelection({ grade: selectionOrGrade })
     : normalizeQuizSelection(selectionOrGrade);
-  const selectionKey = `${selection.grade}:${selection.subject}:${selection.exam}`;
+  const selectionKey = `${selection.publisher}:${selection.grade}:${selection.subject}:${selection.exam}`;
   const selectedSubjects = selection.subject === '綜合' ? CORE_QUESTION_SUBJECTS : [selection.subject];
   const strictPool = QUESTION_BANK.filter(
-    (q) => q.grade === selection.grade && selectedSubjects.includes(q.subject as QuestionSubject) && q.exam === selection.exam,
+    (q) => q.publisher === selection.publisher && q.grade === selection.grade && selectedSubjects.includes(q.subject as QuestionSubject) && q.exam === selection.exam,
   );
-  const subjectPool = QUESTION_BANK.filter((q) => q.grade === selection.grade && selectedSubjects.includes(q.subject as QuestionSubject));
-  const gradePool = QUESTION_BANK.filter((q) => q.grade === selection.grade);
+  const subjectPool = QUESTION_BANK.filter(
+    (q) => q.publisher === selection.publisher && q.grade === selection.grade && selectedSubjects.includes(q.subject as QuestionSubject),
+  );
+  const gradePool = QUESTION_BANK.filter((q) => q.publisher === selection.publisher && q.grade === selection.grade);
   const usable = strictPool.length > 0 ? strictPool : subjectPool.length > 0 ? subjectPool : gradePool.length > 0 ? gradePool : QUESTION_BANK;
   const recentIds = recentQuestionIds.get(selectionKey) ?? [];
   const subjectHistory = recentSubjects.get(selectionKey) ?? [];

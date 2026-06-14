@@ -1,4 +1,4 @@
-import dataset from '../public/question-bank/elementary-kangxuan.json' with { type: 'json' };
+import dataset from '../public/question-bank/elementary-publishers.json' with { type: 'json' };
 
 const expectedGrades = [
   'grade1a', 'grade1b',
@@ -10,6 +10,7 @@ const expectedGrades = [
 ];
 const expectedSubjects = ['國語', '英語', '數學'];
 const expectedExams = ['midterm', 'final'];
+const expectedPublishers = ['康軒', '翰林', '南一'];
 const expectedPerCombo = 30;
 const errors = [];
 const ids = new Set();
@@ -20,6 +21,7 @@ for (const question of dataset.questions) {
   if (ids.has(question.id)) errors.push(`duplicate id: ${question.id}`);
   ids.add(question.id);
 
+  if (!expectedPublishers.includes(question.publisher)) errors.push(`invalid publisher: ${question.id}`);
   if (!expectedGrades.includes(question.grade)) errors.push(`invalid grade: ${question.id}`);
   if (!expectedSubjects.includes(question.subject)) errors.push(`invalid subject: ${question.id}`);
   if (!expectedExams.includes(question.exam)) errors.push(`invalid exam: ${question.id}`);
@@ -29,19 +31,21 @@ for (const question of dataset.questions) {
   }
   if (!question.prompt || !question.explanation || !question.skill) errors.push(`missing text field: ${question.id}`);
 
-  const combo = `${question.grade}|${question.subject}|${question.exam}`;
+  const combo = `${question.publisher}|${question.grade}|${question.subject}|${question.exam}`;
   comboCounts.set(combo, (comboCounts.get(combo) ?? 0) + 1);
   const promptKey = `${combo}|${question.prompt}`;
   if (comboPrompts.has(promptKey)) errors.push(`duplicate prompt in combo: ${combo} / ${question.prompt}`);
   comboPrompts.set(promptKey, question.id);
 }
 
-for (const grade of expectedGrades) {
-  for (const subject of expectedSubjects) {
-    for (const exam of expectedExams) {
-      const combo = `${grade}|${subject}|${exam}`;
-      const count = comboCounts.get(combo) ?? 0;
-      if (count !== expectedPerCombo) errors.push(`combo should have ${expectedPerCombo} questions: ${combo} (${count})`);
+for (const publisher of expectedPublishers) {
+  for (const grade of expectedGrades) {
+    for (const subject of expectedSubjects) {
+      for (const exam of expectedExams) {
+        const combo = `${publisher}|${grade}|${subject}|${exam}`;
+        const count = comboCounts.get(combo) ?? 0;
+        if (count !== expectedPerCombo) errors.push(`combo should have ${expectedPerCombo} questions: ${combo} (${count})`);
+      }
     }
   }
 }

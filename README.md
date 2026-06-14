@@ -6,7 +6,7 @@
 
 ## 目前版本
 
-- 題庫：台灣國小康軒版一到六年級，上下學期，預設國語/英語/數學綜合版，也可單科加強，期中/期末共 2160 題。
+- 題庫：台灣國小康軒、翰林、南一三出版社，一到六年級，上下學期，預設國語/英語/數學綜合版，也可單科加強，期中/期末共 6480 題。
 - 角色：原創公主風格，含星願系與蜜桃系造型。
 - 小怪與王：可愛夢境小夥伴，圖鑑顯示模型縮圖與招式提示。
 - 升級：三選一寶物，答對題目才取得。
@@ -15,7 +15,7 @@
 
 ## 遊戲流程
 
-1. 選擇年級學期、綜合版或單科、期中/期末題庫。
+1. 選擇出版社、年級學期、綜合版或單科、期中/期末題庫。
 2. 選擇公主角色與難度。
 3. 進入夢境小鎮，收集星星升級。
 4. 升級時先選寶物，再答題挑戰。
@@ -32,11 +32,12 @@
 
 ## 題庫重用
 
-- App 內部匯入：`src/question-bank/elementary-kangxuan.ts`
-- 外部 JSON：`public/question-bank/elementary-kangxuan.json`
-- 線上 JSON：`https://sun16z.github.io/star-quiz-adventure-game/question-bank/elementary-kangxuan.json`
+- App 內部匯入：`src/question-bank/elementary-publishers.ts`
+- 外部 JSON：`public/question-bank/elementary-publishers.json`
+- 線上 JSON：`https://sun16z.github.io/star-quiz-adventure-game/question-bank/elementary-publishers.json`
+- 康軒相容 JSON：`https://sun16z.github.io/star-quiz-adventure-game/question-bank/elementary-kangxuan.json`
 
-題庫欄位包含 `grade`、`semester`、`subject`、`exam`、`skill`、`prompt`、`options`、`answerIndex`、`explanation`。題目為本專案原創題型，分類結構參考米蘭老師教育資訊室的國小題庫頁面。
+題庫欄位包含 `publisher`、`grade`、`semester`、`subject`、`exam`、`skill`、`prompt`、`options`、`answerIndex`、`explanation`。題目為本專案原創題型，分類結構參考 StudyArk、米蘭老師教育資訊室與教材版本查詢頁面。
 
 ## 開發
 

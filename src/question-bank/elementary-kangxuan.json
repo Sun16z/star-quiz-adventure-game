@@ -1,9 +1,11 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "title": "台灣國小康軒版國英數題庫",
-  "description": "原創選擇題資料集，依國小一到六年級、上下學期、國語/英語/數學、期中/期末分類，可供遊戲或練習系統重用。",
-  "publisher": "康軒",
-  "licenseNote": "題目為本專案原創題型，用於對應康軒版國小常見段考範圍；未複製第三方考卷原文。",
+  "description": "原創選擇題資料集，依康軒、國小一到六年級、上下學期、國語/英語/數學、期中/期末分類，可供遊戲或練習系統重用。",
+  "publishers": [
+    "康軒"
+  ],
+  "licenseNote": "題目為本專案原創題型，用於對應台灣國小常見段考範圍；未複製第三方考卷原文。",
   "sourceReference": {
     "title": "米蘭老師教育資訊室：國中國小題庫考古題下載網站",
     "url": "https://melances.com/test-bank/",
@@ -11,9 +13,9 @@
   },
   "sourceReferences": [
     {
-      "title": "學習方舟：康軒國小題庫免費下載",
+      "title": "學習方舟：全國中小學題庫網",
       "url": "https://www.studyark.org/s/kangxuanguoxiao/",
-      "usedFor": "確認康軒國小題庫站的版本與試卷型態描述。"
+      "usedFor": "確認國小題庫站列有康軒、翰林、南一等版本與期中/期末篩選。"
     },
     {
       "title": "米蘭老師教育資訊室：國中國小題庫考古題下載網站",
@@ -21,9 +23,9 @@
       "usedFor": "確認國小年級、版本、科目、上下學期與期中期末分類方式。"
     },
     {
-      "title": "康軒國小 Kahoot 題目平台",
-      "url": "https://digitalmaster.knsh.com.tw/test/quiz/kahoot/e/",
-      "usedFor": "確認康軒國小題庫平台涵蓋國語、數學、英語等科目。"
+      "title": "OneClass 各學校學制教科書版本查詢",
+      "url": "https://version.oneclass.com.tw/",
+      "usedFor": "確認國小教材版本會依學校與學年度而不同，並含南一、翰林、康軒等版本。"
     }
   ],
   "targetPerCombo": 30,
@@ -60597,5 +60599,6 @@
       "answerIndex": 3,
       "explanation": "計算後可得 18。"
     }
-  ]
+  ],
+  "publisher": "康軒"
 }
