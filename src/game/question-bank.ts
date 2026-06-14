@@ -1,7 +1,20 @@
 import { GENERATED_QUESTION_BANK } from './generated-question-bank';
 import { GRADE4B_QUESTION_BANK } from './grade4b-question-bank';
+import { KANGXUAN_QUESTION_BANK } from './kangxuan-question-bank';
 
-export type QuestionGrade = 'grade2b' | 'grade4b' | 'grade5b';
+export type QuestionGrade =
+  | 'grade1a'
+  | 'grade1b'
+  | 'grade2a'
+  | 'grade2b'
+  | 'grade3a'
+  | 'grade3b'
+  | 'grade4a'
+  | 'grade4b'
+  | 'grade5a'
+  | 'grade5b'
+  | 'grade6a'
+  | 'grade6b';
 
 export interface QuestionGradeInfo {
   id: QuestionGrade;
@@ -23,25 +36,88 @@ export interface QuizQuestion {
 
 export const QUESTION_GRADES: QuestionGradeInfo[] = [
   {
+    id: 'grade1a',
+    shortLabel: '一上',
+    label: '康軒一年級上學期',
+    desc: '國語、數學、英語、生活、健體',
+    subjects: ['國語', '數學', '英語', '生活', '健體'],
+  },
+  {
+    id: 'grade1b',
+    shortLabel: '一下',
+    label: '康軒一年級下學期',
+    desc: '國語、數學、英語、生活、健體',
+    subjects: ['國語', '數學', '英語', '生活', '健體'],
+  },
+  {
+    id: 'grade2a',
+    shortLabel: '二上',
+    label: '康軒二年級上學期',
+    desc: '國語、數學、英語、生活、健體',
+    subjects: ['國語', '數學', '英語', '生活', '健體'],
+  },
+  {
     id: 'grade2b',
     shortLabel: '二下',
-    label: '二年級下學期',
+    label: '康軒二年級下學期',
     desc: '國語、數學、生活、英語、自然觀察',
     subjects: ['國語', '數學', '生活', '英語', '自然'],
   },
   {
+    id: 'grade3a',
+    shortLabel: '三上',
+    label: '康軒三年級上學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
+  },
+  {
+    id: 'grade3b',
+    shortLabel: '三下',
+    label: '康軒三年級下學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
+  },
+  {
+    id: 'grade4a',
+    shortLabel: '四上',
+    label: '康軒四年級上學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
+  },
+  {
     id: 'grade4b',
     shortLabel: '四下',
-    label: '四年級下學期期末',
-    desc: '國語、英語、數學期末複習',
-    subjects: ['國語', '英語', '數學'],
+    label: '康軒四年級下學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
+  },
+  {
+    id: 'grade5a',
+    shortLabel: '五上',
+    label: '康軒五年級上學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
   },
   {
     id: 'grade5b',
     shortLabel: '五下',
-    label: '五年級下學期',
+    label: '康軒五年級下學期',
     desc: '國語、數學、自然、社會、英語',
     subjects: ['國語', '數學', '自然', '社會', '英語'],
+  },
+  {
+    id: 'grade6a',
+    shortLabel: '六上',
+    label: '康軒六年級上學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
+  },
+  {
+    id: 'grade6b',
+    shortLabel: '六下',
+    label: '康軒六年級下學期',
+    desc: '國語、數學、英語、自然、社會、健體',
+    subjects: ['國語', '數學', '英語', '自然', '社會', '健體'],
   },
 ];
 
@@ -267,6 +343,7 @@ const BASE_QUESTION_BANK: QuizQuestion[] = [
 ];
 
 export const QUESTION_BANK: QuizQuestion[] = [
+  ...KANGXUAN_QUESTION_BANK,
   ...BASE_QUESTION_BANK,
   ...GENERATED_QUESTION_BANK,
   ...GRADE4B_QUESTION_BANK,

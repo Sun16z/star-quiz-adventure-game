@@ -26,7 +26,7 @@
       </button>
     </div>
 
-    <div class="mx-auto flex max-w-3xl flex-col gap-6 p-6 pb-28">
+    <div class="mx-auto flex max-w-5xl flex-col gap-6 p-6 pb-28">
       <!-- 標題 -->
       <div class="pt-4 text-center">
         <div class="text-5xl font-black tracking-wider">星願問答大冒險</div>
@@ -39,18 +39,18 @@
       <!-- 題庫 -->
       <div>
         <div class="mb-2 text-lg font-black">選擇題庫</div>
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           <button
             v-for="g in questionGrades"
             :key="g.id"
             type="button"
-            class="rounded-2xl p-4 text-left ring-2 transition active:scale-[0.98]"
+            class="min-h-28 rounded-xl p-3 text-left ring-2 transition active:scale-[0.98]"
             :class="quizGrade === g.id ? 'bg-lime-400/20 ring-lime-300' : 'bg-white/5 ring-white/10 hover:ring-white/30'"
             @click="selectQuizGrade(g.id)"
           >
-            <div class="text-2xl font-black text-lime-200">{{ g.shortLabel }}</div>
-            <div class="mt-1 text-sm font-black">{{ g.label }}</div>
-            <div class="mt-1 text-xs leading-snug text-white/60">{{ g.desc }}</div>
+            <div class="text-xl font-black text-lime-200">{{ g.shortLabel }}</div>
+            <div class="mt-1 text-xs font-black leading-tight">{{ g.label }}</div>
+            <div class="mt-1 text-[0.68rem] leading-snug text-white/60">{{ g.desc }}</div>
           </button>
         </div>
       </div>
