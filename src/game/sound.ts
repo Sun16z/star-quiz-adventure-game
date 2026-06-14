@@ -71,7 +71,7 @@ let musicGain: GainNode | undefined;
 let musicTimer: ReturnType<typeof setTimeout> | undefined;
 let nextBarTime = 0;
 let bar = 0;
-/** 預設曲目：暗潮（隨擊敗王數自動切換） */
+/** 預設曲目：星光散步（隨擊敗王數自動切換） */
 let currentTrack = 0;
 
 function musicNote(freq: number, type: OscillatorType, t: number, dur: number, gain: number, filterFreq?: number) {
@@ -104,64 +104,64 @@ interface Track {
   build: (t: number, bar: number) => void;
 }
 
-/** 第一首「暗潮」：A 小調 i–VI–III–VII 緩拍琶音 */
-function trackDark(t: number, bar: number) {
-  const roots = [110, 87.31, 130.81, 98];
+/** 第一首「星光散步」：明亮慢速琶音，適合開局探索 */
+function trackStarlight(t: number, bar: number) {
+  const roots = [130.81, 164.81, 196, 174.61];
   const root = roots[bar % roots.length];
   const B = 0.5;
-  musicNote(root * 2, 'triangle', t, 2, 0.14);
-  musicNote(root * 3, 'sine', t, 2, 0.09);
-  const mel = [2, 3, 4, 3];
+  musicNote(root * 2, 'triangle', t, 2, 0.1);
+  musicNote(root * 3, 'sine', t, 2, 0.06);
+  const mel = [2, 3, 5, 4];
   for (let b = 0; b < 4; b++) {
-    musicNote(root, 'sawtooth', t + b * B, 0.4, 0.24, 600);
-    musicNote(root * mel[b], 'triangle', t + b * B, 0.45, 0.13);
+    musicNote(root, 'triangle', t + b * B, 0.36, 0.12, 1200);
+    musicNote(root * mel[b], 'sine', t + b * B, 0.42, 0.08);
   }
 }
 
-/** 第二首「獵殺」：快速驅動八分音符低音 + 攻擊性旋律 */
-function trackHunt(t: number, bar: number) {
-  const roots = [110, 110, 146.83, 130.81]; // A A D C
+/** 第二首「糖果追逐」：速度提高，但保留輕快感 */
+function trackCandyChase(t: number, bar: number) {
+  const roots = [146.83, 146.83, 196, 174.61];
   const root = roots[bar % roots.length];
   const S = 0.15;
-  musicNote(root * 2, 'sawtooth', t, 1.2, 0.08, 1400);
-  const mel = [4, 0, 3, 0, 4, 5, 0, 3];
+  musicNote(root * 2, 'triangle', t, 1.2, 0.06, 1600);
+  const mel = [4, 0, 5, 0, 4, 6, 0, 5];
   for (let s = 0; s < 8; s++) {
-    musicNote(root, 'square', t + s * S, 0.13, 0.18, 700);
-    if (mel[s]) musicNote(root * mel[s], 'triangle', t + s * S, 0.16, 0.12);
+    musicNote(root, 'triangle', t + s * S, 0.13, 0.1, 900);
+    if (mel[s]) musicNote(root * mel[s], 'sine', t + s * S, 0.16, 0.08);
   }
 }
 
-/** 「狂亂」：高速十六分音符、緊張驅動（追逐感） */
-function trackFrenzy(t: number, bar: number) {
-  const roots = [110, 98, 130.81, 116.54]; // A G C A#
+/** 「彩虹急行」：後段高能量音型 */
+function trackRainbowRush(t: number, bar: number) {
+  const roots = [174.61, 146.83, 196, 164.81];
   const root = roots[bar % roots.length];
   const S = 0.1;
-  musicNote(root, 'sawtooth', t, 1.6, 0.07, 1300); // 持續低音鋪底
-  const mel = [4, 5, 4, 6, 4, 5, 8, 6, 4, 5, 4, 6, 8, 10, 8, 6];
+  musicNote(root, 'triangle', t, 1.6, 0.06, 1400);
+  const mel = [4, 5, 4, 6, 4, 5, 8, 6, 5, 6, 5, 8, 9, 10, 9, 8];
   for (let s = 0; s < 16; s++) {
-    if (s % 2 === 0) musicNote(root, 'square', t + s * S, 0.09, 0.16, 850); // 急促脈衝低音
-    musicNote(root * mel[s], 'triangle', t + s * S, 0.11, 0.09);
+    if (s % 2 === 0) musicNote(root, 'triangle', t + s * S, 0.09, 0.08, 950);
+    musicNote(root * mel[s], 'sine', t + s * S, 0.11, 0.06);
   }
 }
 
-/** 「肅殺」：行軍式中速、沉重壓迫 */
-function trackGrim(t: number, bar: number) {
-  const roots = [73.42, 73.42, 82.41, 65.41]; // D D E C（低音行軍）
+/** 「月光鼓隊」：王戰中速節奏，明確但不恐怖 */
+function trackMoonParade(t: number, bar: number) {
+  const roots = [98, 98, 130.81, 116.54];
   const root = roots[bar % roots.length];
   const B = 0.4;
   const mel = [4, 5, 6, 5];
   for (let b = 0; b < 4; b++) {
-    musicNote(root, 'square', t + b * B, 0.18, 0.22, 420); // 沉重腳步
-    musicNote(root * mel[b], 'sawtooth', t + b * B, 0.34, 0.12, 950); // 陰暗旋律
+    musicNote(root, 'triangle', t + b * B, 0.18, 0.11, 720);
+    musicNote(root * mel[b], 'sine', t + b * B, 0.34, 0.08, 1200);
   }
-  if (bar % 2 === 1) musicNote(root * 8, 'sine', t + 1.2, 0.6, 0.06); // 高處不安泛音
+  if (bar % 2 === 1) musicNote(root * 8, 'sine', t + 1.2, 0.45, 0.05);
 }
 
 const TRACKS: Track[] = [
-  { name: '暗潮', barDur: 2, build: trackDark }, // 0
-  { name: '獵殺', barDur: 1.2, build: trackHunt }, // 1
-  { name: '狂亂', barDur: 1.6, build: trackFrenzy }, // 2
-  { name: '肅殺', barDur: 1.6, build: trackGrim }, // 3
+  { name: '星光散步', barDur: 2, build: trackStarlight },
+  { name: '糖果追逐', barDur: 1.2, build: trackCandyChase },
+  { name: '彩虹急行', barDur: 1.6, build: trackRainbowRush },
+  { name: '月光鼓隊', barDur: 1.6, build: trackMoonParade },
 ];
 
 function scheduler() {
@@ -210,15 +210,27 @@ export const sound = {
   setMusicTrack(i: number) {
     if (i >= 0 && i < TRACKS.length) currentTrack = i;
   },
+  uiTap() {
+    tone({ freq: 660, freqTo: 880, type: 'sine', dur: 0.06, gain: 0.08 });
+  },
+  quizCorrect() {
+    [659, 880, 1318].forEach((f, i) => tone({ freq: f, type: 'sine', dur: 0.14, gain: 0.16, delay: i * 0.07 }));
+  },
+  quizWrong() {
+    tone({ freq: 392, freqTo: 330, type: 'triangle', dur: 0.18, gain: 0.12 });
+    tone({ freq: 330, freqTo: 294, type: 'sine', dur: 0.18, gain: 0.08, delay: 0.08 });
+  },
+  treasure() {
+    [784, 988, 1175, 1568].forEach((f, i) => tone({ freq: f, type: 'triangle', dur: 0.16, gain: 0.18, delay: i * 0.055 }));
+    noise(0.18, 0.045, 'highpass', 3200);
+  },
   /** 開槍 */
   shoot() {
-    tone({ freq: 880, freqTo: 280, type: 'square', dur: 0.08, gain: 0.12 });
-    noise(0.05, 0.08, 'highpass', 2000);
+    tone({ freq: 1046, freqTo: 620, type: 'triangle', dur: 0.07, gain: 0.08 });
   },
-  /** 命中／擊殺殭屍 */
+  /** 命中／擊退小夥伴 */
   hit() {
-    tone({ freq: 200, freqTo: 70, type: 'square', dur: 0.1, gain: 0.16 });
-    noise(0.08, 0.12, 'lowpass', 600);
+    tone({ freq: 392, freqTo: 220, type: 'triangle', dur: 0.08, gain: 0.1 });
   },
   /** 升級 */
   levelUp() {
@@ -228,28 +240,26 @@ export const sound = {
   hurt() {
     tone({ freq: 300, freqTo: 90, type: 'sawtooth', dur: 0.18, gain: 0.22 });
   },
-  /** 王登場：威壓號角（基頻拉進可聽範圍，中頻層確保小喇叭聽得到） */
+  /** 王登場：星光提醒音（小喇叭也聽得到） */
   bossSpawn() {
-    tone({ freq: 165, freqTo: 110, type: 'sawtooth', dur: 1.0, gain: 0.42 }); // 主號角 E3→A2
-    tone({ freq: 247, freqTo: 165, type: 'square', dur: 0.9, gain: 0.22 }); // 不協和疊音增加壓迫
-    tone({ freq: 440, freqTo: 330, type: 'triangle', dur: 0.45, gain: 0.2, delay: 0.04 }); // 明亮中頻層
-    tone({ freq: 660, type: 'triangle', dur: 0.18, gain: 0.16, delay: 0.0 }); // 起頭的尖銳衝擊
-    noise(0.8, 0.3, 'lowpass', 900);
+    tone({ freq: 196, freqTo: 262, type: 'triangle', dur: 0.55, gain: 0.2 });
+    tone({ freq: 392, freqTo: 523, type: 'sine', dur: 0.45, gain: 0.12, delay: 0.08 });
+    tone({ freq: 784, type: 'sine', dur: 0.2, gain: 0.12, delay: 0.02 });
+    noise(0.35, 0.08, 'lowpass', 1200);
   },
-  /** 王施放招式：吼叫 + 下掃（彈幕／衝撞／震波） */
+  /** 王施放招式：泡泡提醒音（彈幕／衝撞／震波） */
   bossSkill() {
-    tone({ freq: 760, freqTo: 180, type: 'sawtooth', dur: 0.3, gain: 0.3 });
-    tone({ freq: 380, freqTo: 150, type: 'square', dur: 0.3, gain: 0.2 });
-    noise(0.25, 0.26, 'bandpass', 1200);
+    tone({ freq: 740, freqTo: 370, type: 'triangle', dur: 0.22, gain: 0.16 });
+    noise(0.16, 0.08, 'bandpass', 1600);
   },
   /** 王被擊敗 */
   bossDown() {
-    tone({ freq: 160, freqTo: 40, type: 'sawtooth', dur: 0.6, gain: 0.32 });
-    noise(0.5, 0.3, 'lowpass', 800);
+    [523, 659, 784, 1046].forEach((f, i) => tone({ freq: f, type: 'triangle', dur: 0.18, gain: 0.16, delay: i * 0.06 }));
+    noise(0.22, 0.07, 'highpass', 2600);
   },
-  /** 玩家死亡 */
+  /** 玩家失敗 */
   playerDeath() {
-    tone({ freq: 420, freqTo: 60, type: 'sawtooth', dur: 0.7, gain: 0.28 });
+    tone({ freq: 440, freqTo: 220, type: 'triangle', dur: 0.38, gain: 0.18 });
   },
   /** 開寶箱獲得增益 */
   buff() {

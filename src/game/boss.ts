@@ -24,7 +24,7 @@ interface BossDef {
   desc: string;
 }
 
-/** 依序登場的 5 隻王，打完第 5 隻即破關 */
+/** 依序登場的夢境大夥伴，全部通過即破關 */
 const BOSS_DEFS: BossDef[] = [
   {
     name: '棉花雲朵獸',
@@ -129,7 +129,7 @@ const WHITE = new Color3(1, 1, 1);
 
 /**
  * 王：依序登場的夢境大夥伴，各有特殊招式。
- * 5 種模型於建構時預先載入，spawn 時啟用對應的一隻。
+ * 模型於建構時預先載入，spawn 時啟用對應的一隻。
  */
 export class Boss {
   active = false;
@@ -190,7 +190,7 @@ export class Boss {
 
     this.root.setEnabled(false);
 
-    /** 預先載入 5 隻王的模型，各自正規化大小並停用 */
+    /** 預先載入每位夢境大夥伴的模型，各自正規化大小並停用 */
     this.models = new Array(BOSS_DEFS.length).fill(null);
     this.modelMeshes = new Array(BOSS_DEFS.length).fill(null).map(() => []);
     BOSS_DEFS.forEach((def, i) => {

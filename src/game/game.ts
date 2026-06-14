@@ -140,7 +140,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   /** 解析度降階：值越大越省（中=1.5、低=2）；高=1 滿解析度 */
   engine.setHardwareScalingLevel(quality.hardwareScaling);
   sound.enable();
-  /** 背景音樂依擊敗王數分段：0→暗潮, ≥2→獵殺, ≥4→肅殺, ≥6→狂亂（索引對應 TRACKS） */
+  /** 背景音樂依擊敗王數分段：0→星光散步, ≥2→糖果追逐, ≥4→月光鼓隊, ≥6→彩虹急行（索引對應 TRACKS） */
   const stageTrack = (defeated: number): number => (defeated >= 6 ? 2 : defeated >= 4 ? 3 : defeated >= 2 ? 1 : 0);
   let musicTrackIdx = 0;
   sound.setMusicTrack(musicTrackIdx);
@@ -289,6 +289,11 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   let dmgAccum = 0;
   let state: GameState = 'running';
   let choices: Upgrade[] = [];
+
+  function setGameState(next: GameState) {
+    state = next;
+    input.setActive(next === 'running');
+  }
 
   function safeHeight(x: number, z: number): number {
     const y = heightAt(x, z);
@@ -495,8 +500,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   const clampArena = (v: number) => Math.max(-CONFIG.arenaHalf, Math.min(CONFIG.arenaHalf, v));
 
   function togglePause() {
-    if (state === 'running') state = 'paused';
-    else if (state === 'paused') state = 'running';
+    if (state === 'running') setGameState('paused');
+    else if (state === 'paused') setGameState('running');
     else return;
     pushStats();
   }
@@ -505,7 +510,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     const rolled = rollChoices(levels);
     if (rolled.length === 0) return; // 全滿級，略過暫停
     choices = rolled;
-    state = 'levelup';
+    setGameState('levelup');
     levelUpBurst(scene, new Vector3(player.position.x, player.position.y + 1, player.position.z));
     sound.levelUp();
     pushStats();
@@ -650,7 +655,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       /** 擊敗最終王 → 破關 */
       if (bossDefeated >= BOSS_COUNT) {
         goldEarned = Math.floor((kills * 0.6 + time) * goldMul) + 500;
-        state = 'won';
+        setGameState('won');
         sound.levelUp();
         hazards.reset();
         pushStats();
@@ -755,7 +760,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     if (hp <= 0) {
       hp = 0;
       goldEarned = Math.floor((kills * 0.6 + time) * goldMul);
-      state = 'dead';
+      setGameState('dead');
       sound.playerDeath();
       pushStats();
       options.onGameOver?.({ gold: goldEarned, kills, time, level, won: false });
@@ -902,8 +907,16 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       /** 最大生命升級補滿，其餘升級回復 30% 最大生命 */
       if (upgrade.id === 'maxhp') hp = run.maxHp;
       else hp = Math.min(run.maxHp, hp + run.maxHp * 0.3);
+      spawnText(
+        scene,
+        new Vector3(player.position.x, safeHeight(player.position.x, player.position.z) + 1.4, player.position.z),
+        `獲得 ${upgrade.name}`,
+        '#fde68a',
+        4.2,
+      );
+      sound.treasure();
       choices = [];
-      state = 'running';
+      setGameState('running');
       recoverView();
       engine.resize();
       pushStats();
@@ -920,7 +933,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       goldEarned = 0;
       hurtTimer = 0;
       choices = [];
-      state = 'running';
+      setGameState('running');
       vy = 0;
       jumpY = 0;
       grounded = true;
@@ -1044,7 +1057,7 @@ function createHealMesh(scene: Scene): Mesh {
 }
 
 /**
- * 散布殭屍城鎮道具（油桶、貨櫃、三角錐、水塔），提供移動參考與氛圍。
+ * 散布夢境小鎮道具（油桶、貨櫃、三角錐、水塔），提供移動參考與氛圍。
  * solid 者登記為障礙物（半徑），阻擋玩家與怪物；三角錐為純裝飾。
  */
 async function scatterProps(scene: Scene, obstacles: Obstacle[], heightAt: (x: number, z: number) => number) {

@@ -1,16 +1,19 @@
 /** 跨平台輸入：鍵盤（WASD／方向鍵）＋ 觸控虛擬搖桿，合成單一移動方向 */
 export class Input {
   private keys = new Set<string>();
+  private active = true;
   /** 觸控搖桿方向（已正規化，-1~1） */
   private joystick = { x: 0, z: 0 };
 
   private onKeyDown = (e: KeyboardEvent) => {
+    if (!this.active) return;
     const key = this.normalizeKey(e);
     if (!key) return;
     this.keys.add(key);
     e.preventDefault();
   };
   private onKeyUp = (e: KeyboardEvent) => {
+    if (!this.active) return;
     const key = this.normalizeKey(e);
     if (!key) return;
     this.keys.delete(key);
@@ -25,10 +28,23 @@ export class Input {
   detach() {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
+    this.clear();
+  }
+
+  setActive(active: boolean) {
+    this.active = active;
+    if (!active) this.clear();
+  }
+
+  clear() {
+    this.keys.clear();
+    this.joystick.x = 0;
+    this.joystick.z = 0;
   }
 
   /** 由 Vue 搖桿元件呼叫 */
   setJoystick(x: number, z: number) {
+    if (!this.active) return;
     this.joystick.x = x;
     this.joystick.z = z;
   }

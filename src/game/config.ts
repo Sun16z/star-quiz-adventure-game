@@ -27,7 +27,7 @@ export const CONFIG = {
     spawnRingMax: 60,
   },
 
-  /** 生成導演：敵人數量與強度隨時間升壓（全動畫殭屍，數量上限較低） */
+  /** 生成導演：小夥伴數量與強度隨時間升壓（全動畫模型，數量上限較低） */
   director: {
     baseCount: 10,
     addPerStep: 4,

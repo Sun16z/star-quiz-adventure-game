@@ -7,7 +7,9 @@
     <!-- 右上控制：靜音／暫停／技能等級／Debug -->
     <div v-show="stats.state === 'running'" class="absolute right-3 top-3 z-10 flex items-center gap-1.5 sm:right-4 sm:top-4 sm:gap-2">
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-full sm:h-11 sm:w-11 bg-black/40 text-base text-white backdrop-blur-md sm:text-xl transition hover:bg-black/60 active:scale-95"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-base text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95 sm:h-11 sm:w-11 sm:text-xl"
+        title="音樂音效"
+        aria-label="切換音樂音效"
         @click="onToggleMute"
       >
         {{ muted ? '🔇' : '🔊' }}
@@ -21,21 +23,27 @@
         <option v-for="q in qualities" :key="q.id" :value="q.id" class="bg-zinc-900 text-white">🎚 {{ q.name }}畫質</option>
       </select>
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-full sm:h-11 sm:w-11 bg-black/40 text-base text-white backdrop-blur-md sm:text-xl transition hover:bg-black/60 active:scale-95"
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-base text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95 sm:h-11 sm:w-11 sm:text-xl"
+        title="暫停"
+        aria-label="暫停遊戲"
         @click="onTogglePause"
       >
         ⏸
       </button>
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-full sm:h-11 sm:w-11 text-base text-white backdrop-blur-md sm:text-xl transition active:scale-95"
+        class="hidden h-9 w-9 items-center justify-center rounded-full text-base text-white backdrop-blur-md transition active:scale-95 sm:flex sm:h-11 sm:w-11 sm:text-xl"
         :class="showStats ? 'bg-cyan-500' : 'bg-black/40 hover:bg-black/60'"
+        title="技能等級"
+        aria-label="顯示技能等級"
         @click="onToggleStats"
       >
         📊
       </button>
       <button
-        class="flex h-9 w-9 items-center justify-center rounded-full sm:h-11 sm:w-11 text-base text-white backdrop-blur-md sm:text-xl transition active:scale-95"
+        class="hidden h-9 w-9 items-center justify-center rounded-full text-base text-white backdrop-blur-md transition active:scale-95 sm:flex sm:h-11 sm:w-11 sm:text-xl"
         :class="showDebug ? 'bg-fuchsia-500' : 'bg-black/40 hover:bg-black/60'"
+        title="Debug"
+        aria-label="開啟 Debug"
         @click="onToggleDebug"
       >
         🛠️
@@ -110,7 +118,7 @@
 
     <joystick
       v-show="stats.state === 'running'"
-      class="absolute bottom-8 left-8 z-10"
+      class="touch-controls absolute bottom-8 left-8 z-10"
       @move="onJoyMove"
       @end="onJoyEnd"
     />
@@ -118,7 +126,7 @@
     <!-- 跳躍鈕（手機，遊玩中顯示） -->
     <button
       v-show="stats.state === 'running'"
-      class="absolute bottom-12 right-10 z-10 flex h-20 w-20 items-center justify-center rounded-full bg-sky-500/70 text-base font-black text-white backdrop-blur-md transition active:scale-90"
+      class="touch-controls absolute bottom-12 right-10 z-10 h-20 w-20 items-center justify-center rounded-full bg-sky-500/70 text-base font-black text-white backdrop-blur-md transition active:scale-90"
       @pointerdown.prevent="onJump"
     >
       跳躍
@@ -156,7 +164,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import {
   createGame,
   type GameHandle,
@@ -266,6 +274,13 @@ onMounted(() => {
   heartbeatTimer = window.setInterval(() => void sendHeartbeat(), 60000);
 });
 
+watch(
+  () => stats.state,
+  (state) => {
+    if (state === 'running') void nextTick(focusCanvas);
+  },
+);
+
 let heartbeatTimer: number | undefined;
 onBeforeUnmount(() => {
   if (heartbeatTimer !== undefined) clearInterval(heartbeatTimer);
@@ -339,3 +354,15 @@ function fmt(v: number) {
   return Number.isInteger(v) ? String(v) : v.toFixed(2);
 }
 </script>
+
+<style scoped>
+.touch-controls {
+  display: none;
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  .touch-controls {
+    display: flex;
+  }
+}
+</style>

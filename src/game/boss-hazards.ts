@@ -110,7 +110,7 @@ export class BossHazards {
     }
   }
 
-  /** 全方位環形彈幕（終極殭屍王） */
+  /** 全方位環形彈幕（最後一位夢境大夥伴） */
   radialBarrage(x: number, z: number, count: number) {
     for (let k = 0; k < count; k++) {
       const a = (k / count) * Math.PI * 2;
@@ -133,7 +133,7 @@ export class BossHazards {
     this.shocks.push({ mesh, t: 0, x, z, hit: false });
   }
 
-  /** 玩家腳下生成持續毒池（腐毒殭屍） */
+  /** 玩家腳下生成持續泡泡圈 */
   poison(x: number, z: number) {
     const mesh = MeshBuilder.CreateDisc('poison', { radius: POISON_RADIUS, tessellation: 32 }, this.scene);
     mesh.rotation.x = Math.PI / 2;

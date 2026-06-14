@@ -18,6 +18,10 @@ export function setGlowLayer(g: GlowLayer) {
   glowLayer = g;
 }
 
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
 function getGlow(scene: Scene): DynamicTexture {
   if (glowTexture) return glowTexture;
   const size = 64;
@@ -45,7 +49,9 @@ function burst(
   size: number,
   life: number,
 ) {
-  const sys = new ParticleSystem('burst', count, scene);
+  const motionScale = prefersReducedMotion() ? 0.45 : 1;
+  const emitCount = Math.max(3, Math.round(count * motionScale));
+  const sys = new ParticleSystem('burst', emitCount, scene);
   sys.particleTexture = getGlow(scene);
   sys.emitter = pos.clone();
   sys.color1 = color.toColor4(1);
@@ -63,7 +69,7 @@ function burst(
   sys.minAngularSpeed = -5;
   sys.maxAngularSpeed = 5;
   sys.updateSpeed = 0.016;
-  sys.manualEmitCount = count;
+  sys.manualEmitCount = emitCount;
   sys.start();
   setTimeout(() => sys.dispose(), (life + 0.3) * 1000);
 }
@@ -84,8 +90,22 @@ export function hurtBurst(scene: Scene, pos: Vector3) {
   burst(scene, pos, new Color3(1, 0.3, 0.3), 14, 7, 0.5, 0.35);
 }
 
-/** 子彈命中敵人的小火花（傷害回饋） */
+let sparkWindowStart = 0;
+let sparkCount = 0;
+
+function allowHitSpark() {
+  const now = performance.now();
+  if (now - sparkWindowStart > 100) {
+    sparkWindowStart = now;
+    sparkCount = 0;
+  }
+  sparkCount++;
+  return sparkCount <= 16;
+}
+
+/** 子彈命中敵人的小火花（傷害回饋，高射速時節流避免掉幀） */
 export function hitSpark(scene: Scene, pos: Vector3) {
+  if (!allowHitSpark()) return;
   burst(scene, pos, new Color3(1, 0.95, 0.55), 6, 9, 0.3, 0.22);
 }
 

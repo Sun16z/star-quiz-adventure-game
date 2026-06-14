@@ -59,8 +59,16 @@
       </div>
     </div>
 
+    <!-- 短暫新手提示：避免常駐遮擋戰場 -->
+    <div
+      v-if="showOpeningHint"
+      class="absolute left-1/2 top-24 w-[min(88vw,28rem)] -translate-x-1/2 rounded-full bg-black/35 px-4 py-2 text-center text-xs font-black text-white/85 ring-1 ring-white/10 backdrop-blur-md sm:bottom-5 sm:top-auto sm:text-sm"
+    >
+      收集星星升級，答對題目就能帶走寶物
+    </div>
+
     <!-- 操作提示 -->
-    <div class="absolute bottom-4 right-4 rounded-xl bg-black/30 px-3 py-1 text-xs text-white/70 backdrop-blur-md">
+    <div class="absolute bottom-4 right-4 hidden rounded-xl bg-black/30 px-3 py-1 text-xs text-white/70 backdrop-blur-md sm:block">
       WASD／方向鍵移動・左下搖桿（觸控）・武器自動攻擊
     </div>
   </div>
@@ -88,6 +96,7 @@ const timeText = computed(() => {
   const s = total % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
 });
+const showOpeningHint = computed(() => props.stats.state === 'running' && props.stats.time < 9 && !props.stats.bossActive);
 const fpsClass = computed(() =>
   props.stats.fps >= 55 ? 'text-green-300' : props.stats.fps >= 30 ? 'text-amber-300' : 'text-red-300',
 );

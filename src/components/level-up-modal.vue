@@ -4,6 +4,9 @@
       <div class="mb-4 text-center">
         <div class="text-sm font-bold tracking-widest text-amber-300">升級！ LV {{ level }}</div>
         <div class="text-2xl font-black">{{ activeQuestion ? '答對就能獲得寶物' : '選擇一項寶物' }}</div>
+        <div class="mt-1 text-sm font-bold text-white/60">
+          {{ activeQuestion ? '看清楚題目再選答案，答對後會自動回到戰場。' : '先挑想要的寶物，再完成一題小挑戰。' }}
+        </div>
         <div class="mt-2 inline-flex rounded-full bg-lime-300/15 px-3 py-1 text-xs font-black text-lime-200 ring-1 ring-lime-200/20">
           {{ gradeInfo.label }}題庫
         </div>
@@ -51,7 +54,7 @@
             type="button"
             class="min-h-14 rounded-2xl px-4 py-3 text-left text-base font-black ring-1 transition active:scale-[0.98]"
             :class="answerClass(i)"
-            :disabled="feedback === 'correct'"
+            :disabled="feedback !== 'idle'"
             @click="answerQuestion(i)"
           >
             <span class="mr-2 text-white/45">{{ optionLabels[i] }}</span>{{ option }}
@@ -65,6 +68,12 @@
         >
           <div class="text-base font-black">{{ feedback === 'correct' ? '答對了，寶物入手！' : '這題沒過，寶物先保留。' }}</div>
           <div class="mt-1 text-white/75">{{ activeQuestion.explanation }}</div>
+          <div v-if="feedback === 'wrong'" class="mt-2 text-xs font-black text-rose-100/90">
+            按「換一題再挑戰」就能重新爭取這個寶物。
+          </div>
+          <div v-if="feedback === 'correct'" class="mt-2 text-xs font-black text-amber-100/90">
+            星光正在把寶物帶回戰場...
+          </div>
         </div>
 
         <div class="flex flex-col gap-2 sm:flex-row">
@@ -98,6 +107,7 @@ import {
   type QuestionGrade,
   type QuizQuestion,
 } from '../game/question-bank';
+import { sound } from '../game/sound';
 
 const props = defineProps<{ level: number; choices: ChoiceView[]; quizGrade: QuestionGrade }>();
 const emit = defineEmits<{ (e: 'choose', index: number): void }>();
@@ -125,6 +135,7 @@ onBeforeUnmount(() => {
 });
 
 function startQuestion(index: number) {
+  sound.uiTap();
   selectedChoiceIndex.value = index;
   activeQuestion.value = rollQuestion(props.quizGrade);
   selectedAnswerIndex.value = null;
@@ -132,26 +143,30 @@ function startQuestion(index: number) {
 }
 
 function answerQuestion(index: number) {
-  if (!activeQuestion.value || selectedChoiceIndex.value === null || feedback.value === 'correct') return;
+  if (!activeQuestion.value || selectedChoiceIndex.value === null || feedback.value !== 'idle') return;
   selectedAnswerIndex.value = index;
   if (index !== activeQuestion.value.answerIndex) {
     feedback.value = 'wrong';
+    sound.quizWrong();
     return;
   }
 
   feedback.value = 'correct';
+  sound.quizCorrect();
   correctTimer = window.setTimeout(() => {
     if (selectedChoiceIndex.value !== null) emit('choose', selectedChoiceIndex.value);
-  }, 650);
+  }, 900);
 }
 
 function retryQuestion() {
+  sound.uiTap();
   activeQuestion.value = rollQuestion(props.quizGrade);
   selectedAnswerIndex.value = null;
   feedback.value = 'idle';
 }
 
 function backToChoices() {
+  sound.uiTap();
   resetQuestion();
 }
 
