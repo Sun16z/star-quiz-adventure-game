@@ -50520,6 +50520,846 @@
       "explanation": "依體積或容積公式計算，答案是 64。"
     },
     {
+      "id": "kx-grade5b-final-math-31",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率小數轉換",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "18.6% 化成小數是多少？",
+      "options": [
+        "18.6",
+        "1.86",
+        "0.0186",
+        "0.186"
+      ],
+      "answerIndex": 3,
+      "explanation": "百分率化成小數要除以 100，所以 18.6% = 0.186。"
+    },
+    {
+      "id": "kx-grade5b-final-math-32",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率小數轉換",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "0.72% 化成小數是多少？",
+      "options": [
+        "0.0072",
+        "0.72",
+        "0.072",
+        "0.00072"
+      ],
+      "answerIndex": 0,
+      "explanation": "0.72% 表示 0.72 ÷ 100 = 0.0072。"
+    },
+    {
+      "id": "kx-grade5b-final-math-33",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率小數轉換",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "730% 化成小數是多少？",
+      "options": [
+        "0.73",
+        "7.3",
+        "73",
+        "730"
+      ],
+      "answerIndex": 1,
+      "explanation": "730% 表示 730 ÷ 100 = 7.3。"
+    },
+    {
+      "id": "kx-grade5b-final-math-34",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "分數百分率轉換",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "18/48 化成小數和百分率是多少？",
+      "options": [
+        "0.375，3.75%",
+        "0.75，75%",
+        "0.375，37.5%",
+        "0.48，48%"
+      ],
+      "answerIndex": 2,
+      "explanation": "18/48 = 3/8 = 0.375，也就是 37.5%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-35",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "分數百分率轉換",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "9/50 化成小數和百分率是多少？",
+      "options": [
+        "0.09，9%",
+        "0.45，45%",
+        "0.018，1.8%",
+        "0.18，18%"
+      ],
+      "answerIndex": 3,
+      "explanation": "9 ÷ 50 = 0.18，換成百分率是 18%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-36",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "分數百分率轉換",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "5/8 化成小數和百分率是多少？",
+      "options": [
+        "0.625，62.5%",
+        "0.58，58%",
+        "0.625，6.25%",
+        "0.75，75%"
+      ],
+      "answerIndex": 0,
+      "explanation": "5 ÷ 8 = 0.625，換成百分率是 62.5%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-37",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "160 題中答對率是 92.5%，答對幾題？",
+      "options": [
+        "145 題",
+        "148 題",
+        "150 題",
+        "152 題"
+      ],
+      "answerIndex": 1,
+      "explanation": "160 × 92.5% = 160 × 0.925 = 148。"
+    },
+    {
+      "id": "kx-grade5b-final-math-38",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "全校 1200 人，男生占 51.5%，女生有幾人？",
+      "options": [
+        "618 人",
+        "600 人",
+        "582 人",
+        "515 人"
+      ],
+      "answerIndex": 2,
+      "explanation": "男生 1200 × 51.5% = 618 人，女生 1200 - 618 = 582 人。"
+    },
+    {
+      "id": "kx-grade5b-final-math-39",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "某班投票，A 方案男生 4 人，B 方案男生 12 人，A 方案男生占全部男生的百分率是多少？",
+      "options": [
+        "20%",
+        "33.3%",
+        "75%",
+        "25%"
+      ],
+      "answerIndex": 3,
+      "explanation": "全部男生 4 + 12 = 16 人，4 ÷ 16 = 25%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-40",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "全體投票人共有 34 人，A 方案男生 4 人，約占全體投票人的百分率是多少？",
+      "options": [
+        "約 11.8%",
+        "約 8.5%",
+        "約 25%",
+        "約 17%"
+      ],
+      "answerIndex": 0,
+      "explanation": "4 ÷ 34 約等於 0.1176，也就是約 11.8%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-41",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "飲料店賣出 300 杯，紅茶 30 杯、綠茶 69 杯、奶茶 135 杯、冬瓜茶 66 杯，各占幾％？",
+      "options": [
+        "30%、69%、135%、66%",
+        "10%、23%、45%、22%",
+        "15%、20%、45%、20%",
+        "10%、22%、45%、23%"
+      ],
+      "answerIndex": 1,
+      "explanation": "各數量除以 300 後換成百分率，分別是 10%、23%、45%、22%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-42",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "百分率應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "消防設備 80 套，只有 15 套合格，不合格率是多少？",
+      "options": [
+        "18.75%",
+        "65%",
+        "81.25%",
+        "85%"
+      ],
+      "answerIndex": 2,
+      "explanation": "不合格 80 - 15 = 65 套，65 ÷ 80 = 81.25%。"
+    },
+    {
+      "id": "kx-grade5b-final-math-43",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "折扣百分率",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "一瓶乳液原價 1380 元，25% off，售價是多少？",
+      "options": [
+        "345 元",
+        "1115 元",
+        "1055 元",
+        "1035 元"
+      ],
+      "answerIndex": 3,
+      "explanation": "25% off 表示付 75%，1380 × 0.75 = 1035。"
+    },
+    {
+      "id": "kx-grade5b-final-math-44",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "折扣百分率",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "文具盒原價 250 元，便宜 50 元，相當於打幾折？",
+      "options": [
+        "8 折",
+        "2 折",
+        "75 折",
+        "85 折"
+      ],
+      "answerIndex": 0,
+      "explanation": "便宜 50 元後付 200 元，200 ÷ 250 = 0.8，也就是 8 折。"
+    },
+    {
+      "id": "kx-grade5b-final-math-45",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "折扣百分率",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "帳篷原價 7600 元，打 85 折，可省下幾元？",
+      "options": [
+        "6460 元",
+        "1140 元",
+        "760 元",
+        "1290 元"
+      ],
+      "answerIndex": 1,
+      "explanation": "85 折表示省 15%，7600 × 15% = 1140。"
+    },
+    {
+      "id": "kx-grade5b-final-math-46",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "折扣百分率",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "每瓶樂樂鮮奶 170 元，S 店每瓶七折，F 店第二瓶五折。買 2 瓶去哪一家較便宜？差多少元？",
+      "options": [
+        "F 店較便宜，便宜 17 元",
+        "一樣便宜",
+        "S 店較便宜，便宜 17 元",
+        "S 店較便宜，便宜 34 元"
+      ],
+      "answerIndex": 2,
+      "explanation": "S 店 170 × 0.7 × 2 = 238 元；F 店 170 + 85 = 255 元，相差 17 元。"
+    },
+    {
+      "id": "kx-grade5b-final-math-47",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "折扣百分率",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "冰棒每枝 35 元，甲店每枝折價 5 元，乙店買兩枝第二枝 8 折，丙店買三送一。買 4 枝去哪一家最便宜？",
+      "options": [
+        "甲店最便宜",
+        "乙店最便宜",
+        "三家一樣便宜",
+        "丙店最便宜"
+      ],
+      "answerIndex": 3,
+      "explanation": "買 4 枝時，甲店 120 元、乙店 126 元、丙店付 3 枝 105 元，所以丙店最便宜。"
+    },
+    {
+      "id": "kx-grade5b-final-math-48",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "成數百分率",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "10 月入住人數 5400 人，11 月比 10 月少一成五，11 月有幾人？",
+      "options": [
+        "4590 人",
+        "810 人",
+        "4860 人",
+        "6210 人"
+      ],
+      "answerIndex": 0,
+      "explanation": "少一成五是少 15%，5400 × 85% = 4590。"
+    },
+    {
+      "id": "kx-grade5b-final-math-49",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "成數百分率",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "吊帶褲成本 300 元，加三成作為定價，定價是多少？",
+      "options": [
+        "330 元",
+        "390 元",
+        "360 元",
+        "400 元"
+      ],
+      "answerIndex": 1,
+      "explanation": "加三成是加 30%，300 × 1.3 = 390。"
+    },
+    {
+      "id": "kx-grade5b-final-math-50",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "分數應用",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "母雞生了 440 個蛋，其中 7/8 成功孵化，成功孵化幾個蛋？",
+      "options": [
+        "55 個",
+        "352 個",
+        "385 個",
+        "390 個"
+      ],
+      "answerIndex": 2,
+      "explanation": "440 × 7/8 = 55 × 7 = 385。"
+    },
+    {
+      "id": "kx-grade5b-final-math-51",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間換算",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "2 小時 6 分鐘等於幾小時？",
+      "options": [
+        "2.6 小時",
+        "2.06 小時",
+        "2.01 小時",
+        "2.1 小時"
+      ],
+      "answerIndex": 3,
+      "explanation": "6 分鐘 = 6/60 小時 = 0.1 小時，所以共 2.1 小時。"
+    },
+    {
+      "id": "kx-grade5b-final-math-52",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間換算",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "0.625 日等於幾小時？",
+      "options": [
+        "15 小時",
+        "12 小時",
+        "16 小時",
+        "6.25 小時"
+      ],
+      "answerIndex": 0,
+      "explanation": "1 日 24 小時，0.625 × 24 = 15。"
+    },
+    {
+      "id": "kx-grade5b-final-math-53",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間換算",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "78 小時等於幾日？",
+      "options": [
+        "3 日",
+        "3 又 1/4 日",
+        "3 又 1/2 日",
+        "78/100 日"
+      ],
+      "answerIndex": 1,
+      "explanation": "78 ÷ 24 = 3 餘 6，6/24 = 1/4，所以是 3 又 1/4 日。"
+    },
+    {
+      "id": "kx-grade5b-final-math-54",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間換算",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "36 秒等於幾分鐘？用分數和小數表示。",
+      "options": [
+        "36/100 分鐘，0.36 分鐘",
+        "6/10 分鐘，6 分鐘",
+        "3/5 分鐘，0.6 分鐘",
+        "3/6 分鐘，0.5 分鐘"
+      ],
+      "answerIndex": 2,
+      "explanation": "36 秒 = 36/60 分鐘 = 3/5 分鐘 = 0.6 分鐘。"
+    },
+    {
+      "id": "kx-grade5b-final-math-55",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間換算",
+      "difficulty": 4,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "3.2 小時等於幾小時幾分鐘？",
+      "options": [
+        "3 小時 2 分鐘",
+        "3 小時 20 分鐘",
+        "3 小時 120 分鐘",
+        "3 小時 12 分鐘"
+      ],
+      "answerIndex": 3,
+      "explanation": "0.2 小時 = 0.2 × 60 = 12 分鐘。"
+    },
+    {
+      "id": "kx-grade5b-final-math-56",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間應用",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "一部影片長 3 分 36 秒，播放 3 次，每次中間都有 45 秒廣告，一共花幾分幾秒？",
+      "options": [
+        "12 分 18 秒",
+        "10 分 48 秒",
+        "13 分 3 秒",
+        "11 分 33 秒"
+      ],
+      "answerIndex": 0,
+      "explanation": "影片 3 次共 10 分 48 秒，中間有 2 次廣告共 1 分 30 秒，合計 12 分 18 秒。"
+    },
+    {
+      "id": "kx-grade5b-final-math-57",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間應用",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "煙火每隔 33 秒施放一次，第二枚在晚上 9 時 15 分施放，第八枚是幾時幾分幾秒？",
+      "options": [
+        "晚上 9 時 17 分 45 秒",
+        "晚上 9 時 18 分 18 秒",
+        "晚上 9 時 18 分 51 秒",
+        "晚上 9 時 15 分 33 秒"
+      ],
+      "answerIndex": 1,
+      "explanation": "第 2 枚到第 8 枚相隔 6 次，33 × 6 = 198 秒，也就是 3 分 18 秒。"
+    },
+    {
+      "id": "kx-grade5b-final-math-58",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間應用",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "單程車程 3 小時 24 分鐘，來回老家 3 趟，一共花幾小時幾分鐘？",
+      "options": [
+        "10 小時 12 分鐘",
+        "18 小時 24 分鐘",
+        "20 小時 24 分鐘",
+        "20 小時 12 分鐘"
+      ],
+      "answerIndex": 2,
+      "explanation": "來回 1 趟是 2 個單程，3 趟共 6 個單程；3 小時 24 分 × 6 = 20 小時 24 分。"
+    },
+    {
+      "id": "kx-grade5b-final-math-59",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間應用",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "練琴一次 4 分 22 秒，今天練 5 次，每次中間休息 30 秒，下午 4:45 開始，幾時幾分幾秒結束？",
+      "options": [
+        "下午 5 時 6 分 50 秒",
+        "下午 5 時 10 分 50 秒",
+        "下午 5 時 9 分 20 秒",
+        "下午 5 時 8 分 50 秒"
+      ],
+      "answerIndex": 3,
+      "explanation": "練琴 5 次共 21 分 50 秒，中間 4 次休息共 2 分，總共 23 分 50 秒。"
+    },
+    {
+      "id": "kx-grade5b-final-math-60",
+      "publisher": "康軒",
+      "grade": "grade5b",
+      "gradeNumber": 5,
+      "gradeLabel": "5年級下學期",
+      "semester": "b",
+      "semesterLabel": "下學期",
+      "subject": "數學",
+      "exam": "final",
+      "examLabel": "期末考",
+      "unit": "五下易錯加強",
+      "skill": "時間應用",
+      "difficulty": 5,
+      "source": {
+        "type": "original",
+        "referenceUrl": "https://www.studyark.org/s/kangxuanguoxiao/"
+      },
+      "prompt": "一本書法需要 12 分 28 秒，寫 4 本共需要幾分幾秒？",
+      "options": [
+        "49 分 52 秒",
+        "48 分 112 秒",
+        "50 分 12 秒",
+        "49 分 12 秒"
+      ],
+      "answerIndex": 0,
+      "explanation": "12 分 28 秒 × 4 = 48 分 112 秒 = 49 分 52 秒。"
+    },
+    {
       "id": "kx-grade6a-midterm-mandarin-01",
       "publisher": "康軒",
       "grade": "grade6a",

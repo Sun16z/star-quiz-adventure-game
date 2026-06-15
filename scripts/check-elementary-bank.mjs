@@ -12,6 +12,11 @@ const expectedSubjects = ['國語', '英語', '數學'];
 const expectedExams = ['midterm', 'final'];
 const expectedPublishers = ['康軒', '翰林', '南一'];
 const expectedPerCombo = 30;
+const comboOverrides = new Map([
+  ['康軒|grade5b|數學|final', 60],
+  ['翰林|grade5b|數學|final', 60],
+  ['南一|grade5b|數學|final', 60],
+]);
 const errors = [];
 const ids = new Set();
 const comboCounts = new Map();
@@ -44,7 +49,8 @@ for (const publisher of expectedPublishers) {
       for (const exam of expectedExams) {
         const combo = `${publisher}|${grade}|${subject}|${exam}`;
         const count = comboCounts.get(combo) ?? 0;
-        if (count !== expectedPerCombo) errors.push(`combo should have ${expectedPerCombo} questions: ${combo} (${count})`);
+        const expected = comboOverrides.get(combo) ?? expectedPerCombo;
+        if (count !== expected) errors.push(`combo should have ${expected} questions: ${combo} (${count})`);
       }
     }
   }
