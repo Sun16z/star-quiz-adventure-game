@@ -98,70 +98,101 @@ function musicNote(freq: number, type: OscillatorType, t: number, dur: number, g
   osc.stop(t + dur + 0.05);
 }
 
+function musicBell(freq: number, t: number, dur = 0.28, gain = 0.055) {
+  musicNote(freq, 'sine', t, dur, gain, 5600);
+  musicNote(freq * 2, 'triangle', t + 0.01, dur * 0.55, gain * 0.28, 6400);
+}
+
+function musicPluck(freq: number, t: number, dur = 0.18, gain = 0.07) {
+  musicNote(freq, 'triangle', t, dur, gain, 1800);
+}
+
+function musicChord(notes: readonly number[], t: number, dur: number, gain = 0.032) {
+  notes.forEach((note, index) => musicNote(note, 'triangle', t + index * 0.015, dur, gain, 2400));
+}
+
 interface Track {
   name: string;
   barDur: number;
   build: (t: number, bar: number) => void;
 }
 
-/** 第一首「星光散步」：明亮慢速琶音，適合開局探索 */
+/** 第一首「星糖散步」：亮晶晶鈴鐺與木琴感，適合開局探索 */
 function trackStarlight(t: number, bar: number) {
-  const roots = [130.81, 164.81, 196, 174.61];
-  const root = roots[bar % roots.length];
-  const B = 0.5;
-  musicNote(root * 2, 'triangle', t, 2, 0.1);
-  musicNote(root * 3, 'sine', t, 2, 0.06);
-  const mel = [2, 3, 5, 4];
-  for (let b = 0; b < 4; b++) {
-    musicNote(root, 'triangle', t + b * B, 0.36, 0.12, 1200);
-    musicNote(root * mel[b], 'sine', t + b * B, 0.42, 0.08);
+  const chords = [
+    [261.63, 329.63, 392],
+    [196, 246.94, 293.66],
+    [220, 261.63, 329.63],
+    [174.61, 220, 261.63],
+  ];
+  const melody = [
+    [523.25, 659.25, 783.99, 659.25],
+    [493.88, 587.33, 659.25, 587.33],
+    [440, 523.25, 659.25, 783.99],
+    [392, 523.25, 587.33, 523.25],
+  ];
+  const chord = chords[bar % chords.length];
+  const line = melody[bar % melody.length];
+  const B = 0.42;
+  musicChord(chord, t, 1.65, 0.028);
+  for (let i = 0; i < 4; i++) {
+    musicPluck(chord[0] / 2, t + i * B, 0.16, 0.055);
+    musicBell(line[i], t + i * B, 0.24, 0.052);
   }
 }
 
-/** 第二首「糖果追逐」：速度提高，但保留輕快感 */
+/** 第二首「糖果跳跳」：速度提高，但像跳格子一樣可愛 */
 function trackCandyChase(t: number, bar: number) {
-  const roots = [146.83, 146.83, 196, 174.61];
-  const root = roots[bar % roots.length];
-  const S = 0.15;
-  musicNote(root * 2, 'triangle', t, 1.2, 0.06, 1600);
-  const mel = [4, 0, 5, 0, 4, 6, 0, 5];
-  for (let s = 0; s < 8; s++) {
-    musicNote(root, 'triangle', t + s * S, 0.13, 0.1, 900);
-    if (mel[s]) musicNote(root * mel[s], 'sine', t + s * S, 0.16, 0.08);
+  const bass = [196, 220, 261.63, 246.94][bar % 4];
+  const notes = [
+    [587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 659.25, 783.99],
+    [659.25, 783.99, 880, 783.99, 659.25, 587.33, 659.25, 880],
+    [523.25, 659.25, 783.99, 987.77, 783.99, 659.25, 587.33, 659.25],
+    [493.88, 587.33, 659.25, 783.99, 659.25, 587.33, 523.25, 659.25],
+  ][bar % 4];
+  const S = 0.145;
+  musicChord([bass, bass * 1.25, bass * 1.5], t, 1.15, 0.023);
+  for (let s = 0; s < notes.length; s++) {
+    if (s % 2 === 0) musicPluck(bass / 2, t + s * S, 0.1, 0.055);
+    musicBell(notes[s], t + s * S, 0.12, 0.045);
   }
 }
 
-/** 「彩虹急行」：後段高能量音型 */
+/** 「彩虹泡泡」：後段高能量，但用上行泡泡音維持輕快 */
 function trackRainbowRush(t: number, bar: number) {
-  const roots = [174.61, 146.83, 196, 164.81];
-  const root = roots[bar % roots.length];
-  const S = 0.1;
-  musicNote(root, 'triangle', t, 1.6, 0.06, 1400);
-  const mel = [4, 5, 4, 6, 4, 5, 8, 6, 5, 6, 5, 8, 9, 10, 9, 8];
+  const bass = [220, 196, 261.63, 293.66][bar % 4];
+  const sparkle = [659.25, 783.99, 880, 987.77, 880, 783.99, 659.25, 587.33];
+  const S = 0.095;
+  musicChord([bass, bass * 1.5, bass * 2], t, 1.45, 0.022);
   for (let s = 0; s < 16; s++) {
-    if (s % 2 === 0) musicNote(root, 'triangle', t + s * S, 0.09, 0.08, 950);
-    musicNote(root * mel[s], 'sine', t + s * S, 0.11, 0.06);
+    if (s % 4 === 0) musicPluck(bass / 2, t + s * S, 0.08, 0.052);
+    musicBell(sparkle[(s + bar) % sparkle.length], t + s * S, 0.09, 0.038);
   }
 }
 
-/** 「月光鼓隊」：王戰中速節奏，明確但不恐怖 */
+/** 「棉花糖遊行」：王戰仍有節奏，但改成可愛遊行感 */
 function trackMoonParade(t: number, bar: number) {
-  const roots = [98, 98, 130.81, 116.54];
-  const root = roots[bar % roots.length];
-  const B = 0.4;
-  const mel = [4, 5, 6, 5];
-  for (let b = 0; b < 4; b++) {
-    musicNote(root, 'triangle', t + b * B, 0.18, 0.11, 720);
-    musicNote(root * mel[b], 'sine', t + b * B, 0.34, 0.08, 1200);
+  const bass = [174.61, 196, 220, 196][bar % 4];
+  const parade = [
+    [523.25, 659.25, 587.33, 783.99],
+    [493.88, 587.33, 659.25, 587.33],
+    [440, 523.25, 659.25, 523.25],
+    [392, 493.88, 587.33, 659.25],
+  ][bar % 4];
+  const B = 0.36;
+  musicChord([bass, bass * 1.5, bass * 2], t, 1.4, 0.026);
+  for (let i = 0; i < 4; i++) {
+    musicPluck(bass, t + i * B, 0.12, i % 2 === 0 ? 0.075 : 0.045);
+    musicBell(parade[i], t + i * B + 0.045, 0.2, 0.05);
   }
-  if (bar % 2 === 1) musicNote(root * 8, 'sine', t + 1.2, 0.45, 0.05);
+  if (bar % 2 === 1) musicBell(1046.5, t + 1.18, 0.28, 0.04);
 }
 
 const TRACKS: Track[] = [
-  { name: '星光散步', barDur: 2, build: trackStarlight },
-  { name: '糖果追逐', barDur: 1.2, build: trackCandyChase },
-  { name: '彩虹急行', barDur: 1.6, build: trackRainbowRush },
-  { name: '月光鼓隊', barDur: 1.6, build: trackMoonParade },
+  { name: '星糖散步', barDur: 1.68, build: trackStarlight },
+  { name: '糖果跳跳', barDur: 1.16, build: trackCandyChase },
+  { name: '彩虹泡泡', barDur: 1.52, build: trackRainbowRush },
+  { name: '棉花糖遊行', barDur: 1.44, build: trackMoonParade },
 ];
 
 function scheduler() {
@@ -190,7 +221,7 @@ export const sound = {
     if (!c || musicTimer) return;
     if (!musicGain) {
       musicGain = c.createGain();
-      musicGain.gain.value = 0.7;
+      musicGain.gain.value = 0.62;
       if (master) musicGain.connect(master);
     }
     bar = 0;
