@@ -4,7 +4,7 @@
 
     <hud :stats="stats" />
 
-    <!-- 右上控制：靜音／暫停／技能等級／Debug -->
+    <!-- 右上控制：靜音／暫停／技能等級 -->
     <div v-show="stats.state === 'running'" class="absolute right-3 top-3 z-10 flex items-center gap-1.5 sm:right-4 sm:top-4 sm:gap-2">
       <button
         class="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-base text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95 sm:h-11 sm:w-11 sm:text-xl"
@@ -38,15 +38,6 @@
         @click="onToggleStats"
       >
         📊
-      </button>
-      <button
-        class="hidden h-9 w-9 items-center justify-center rounded-full text-base text-white backdrop-blur-md transition active:scale-95 sm:flex sm:h-11 sm:w-11 sm:text-xl"
-        :class="showDebug ? 'bg-fuchsia-500' : 'bg-black/40 hover:bg-black/60'"
-        title="Debug"
-        aria-label="開啟 Debug"
-        @click="onToggleDebug"
-      >
-        🛠️
       </button>
     </div>
 
@@ -320,22 +311,6 @@ function onQuality() {
 function onToggleStats() {
   showStats.value = !showStats.value;
   if (showStats.value && game) upgradeStatus.value = game.getUpgradeStatus();
-}
-function onToggleDebug() {
-  /** 每次開啟參數面板都需通過驗證（答對作者全名）；關閉不需要 */
-  if (!showDebug.value) {
-    const answer = window.prompt('請問作者的全名（三個字）？');
-    if (answer === null) return;
-    if (answer.trim() !== '黃國書') {
-      window.alert('答錯了，無法開啟 Debug');
-      return;
-    }
-  }
-  showDebug.value = !showDebug.value;
-  if (showDebug.value && game) {
-    debugParams.value = game.getDebugParams();
-    bossNames.value = game.getBossNames();
-  }
 }
 function onSummonBoss() {
   game?.summonBoss(summonIndex.value);

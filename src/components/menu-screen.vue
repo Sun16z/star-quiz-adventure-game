@@ -8,24 +8,6 @@
       ← 首頁
     </button>
 
-    <!-- Debug 開關 -->
-    <div class="absolute right-3 top-3 z-10 flex items-center gap-2">
-      <button
-        class="rounded-full px-3 py-1 text-xs font-black transition"
-        :class="debug ? 'bg-lime-400 text-black' : 'bg-white/10 text-white/60'"
-        @click="toggleDebug"
-      >
-        🛠 Debug {{ debug ? 'ON' : 'OFF' }}
-      </button>
-      <button
-        v-if="debug"
-        class="rounded-full bg-amber-400 px-3 py-1 text-xs font-black text-black"
-        @click="emit('add-gold', 1000)"
-      >
-        +1000💰
-      </button>
-    </div>
-
     <div class="mx-auto flex max-w-5xl flex-col gap-6 p-6 pb-28">
       <!-- 標題 -->
       <div class="pt-4 text-center">
@@ -292,26 +274,10 @@ onBeforeUnmount(() => {
   for (const h of handles) h.dispose();
 });
 
-const DEBUG_KEY = 'animal-survivors:debug';
-const debug = ref(localStorage.getItem(DEBUG_KEY) === '1');
-function toggleDebug() {
-  /** 開啟需通過驗證；關閉不需要 */
-  if (!debug.value) {
-    const answer = window.prompt('請問作者的全名（三個字）？');
-    if (answer === null) return;
-    if (answer.trim() !== '黃國書') {
-      window.alert('答錯了，無法開啟 Debug');
-      return;
-    }
-  }
-  debug.value = !debug.value;
-  localStorage.setItem(DEBUG_KEY, debug.value ? '1' : '0');
-}
-
 const selectedName = computed(() => getCharacter(selectedId.value).name);
 
 function isUnlocked(id: string) {
-  return debug.value || props.meta.unlocked.includes(id) || getCharacter(id).cost === 0;
+  return props.meta.unlocked.includes(id) || getCharacter(id).cost === 0;
 }
 function level(id: string) {
   return props.meta.perma[id] ?? 0;
