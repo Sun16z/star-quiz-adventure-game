@@ -95,7 +95,8 @@ export function scatterGroundDecals(scene: Scene, heightAt: (x: number, z: numbe
   ];
   const half = CONFIG.arenaHalf;
 
-  for (let i = 0; i < COUNT; i++) {
+  const count = Math.round(COUNT * CONFIG.decorationDensityScale);
+  for (let i = 0; i < count; i++) {
     const t = mats[i % mats.length];
     const size = t.min + Math.random() * (t.max - t.min);
     const decal = MeshBuilder.CreateGround(`gdecal-${i}`, { width: size, height: size }, scene);

@@ -1062,6 +1062,7 @@ function createHealMesh(scene: Scene): Mesh {
  */
 async function scatterProps(scene: Scene, obstacles: Obstacle[], heightAt: (x: number, z: number) => number) {
   const half = CONFIG.arenaHalf;
+  const density = CONFIG.decorationDensityScale;
   const props: { path: string; height: number; count: number; solid?: number }[] = [
     { path: '/models/zombie/barrel.glb', height: 2.2, count: 10, solid: 1 },
     { path: '/models/zombie/container.glb', height: 4, count: 4, solid: 2.8 },
@@ -1097,7 +1098,8 @@ async function scatterProps(scene: Scene, obstacles: Obstacle[], heightAt: (x: n
       if (p.solid) obstacles.push({ x, z, radius: p.solid });
     };
     place(base);
-    for (let i = 1; i < p.count; i++) {
+    const count = Math.round(p.count * density);
+    for (let i = 1; i < count; i++) {
       const clone = base.clone(`${p.path}-${i}`, null);
       if (clone) place(clone);
     }

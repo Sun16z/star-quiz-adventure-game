@@ -1,7 +1,9 @@
 /** 里程碑 1（效能原型）可調參數 */
 export const CONFIG = {
   /** 場地半徑（玩家活動範圍與敵人邊界） */
-  arenaHalf: 70,
+  arenaHalf: 140,
+  /** 地圖放大後同步增加貼花與場景物件，避免世界變空 */
+  decorationDensityScale: 2,
 
   player: {
     speed: 16,
@@ -23,8 +25,8 @@ export const CONFIG = {
     separationRadius: 1.3,
     separationForce: 9,
     /** 從玩家周圍環狀生成的距離 */
-    spawnRingMin: 38,
-    spawnRingMax: 60,
+    spawnRingMin: 50,
+    spawnRingMax: 85,
   },
 
   /** 生成導演：小夥伴數量與強度隨時間升壓（全動畫模型，數量上限較低） */
