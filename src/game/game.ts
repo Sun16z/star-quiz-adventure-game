@@ -676,7 +676,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       }
       /** 擊敗最終王 → 破關 */
       if (bossDefeated >= BOSS_COUNT) {
-        goldEarned = Math.floor((kills * 0.6 + time) * goldMul) + 500;
+        goldEarned = calculateGoldEarned(kills, time, goldMul, true);
         setGameState('won');
         sound.levelUp();
         hazards.reset();
@@ -805,7 +805,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     if (hp <= 0 || castleHp <= 0) {
       hp = Math.max(0, hp);
       castleHp = Math.max(0, castleHp);
-      goldEarned = Math.floor((kills * 0.6 + time) * goldMul);
+      goldEarned = calculateGoldEarned(kills, time, goldMul, false);
       setGameState('dead');
       sound.playerDeath();
       pushStats();
@@ -1082,6 +1082,13 @@ function lerpAngle(current: number, target: number, t: number): number {
   while (diff > Math.PI) diff -= Math.PI * 2;
   while (diff < -Math.PI) diff += Math.PI * 2;
   return current + diff * t;
+}
+
+function calculateGoldEarned(kills: number, time: number, multiplier: number, won: boolean): number {
+  const combatGold = kills * 0.25;
+  const survivalGold = time * 0.18;
+  const clearBonus = won ? 180 : 0;
+  return Math.max(0, Math.floor((combatGold + survivalGold + clearBonus) * multiplier));
 }
 
 /** 星願主堡：可愛、穩定載入的程序化守護塔。 */

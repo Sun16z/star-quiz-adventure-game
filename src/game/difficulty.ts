@@ -1,4 +1,4 @@
-/** 難度設定：以倍率調整小怪/王強度與獎勵。簡單＝現況（全 ×1）。 */
+/** 難度設定：以倍率調整小怪/王強度與獎勵。守城版預設偏輕鬆，讓答題節奏有喘息。 */
 export interface Difficulty {
   id: string;
   name: string;
@@ -20,11 +20,11 @@ export interface Difficulty {
 }
 
 export const DIFFICULTIES: Difficulty[] = [
-  { id: 'easy', name: '簡單', emoji: '😀', color: '#7ec850', desc: '標準體驗，適合新手熟悉操作', enemyHp: 1, enemySpeed: 1, enemyContact: 1, bossHp: 1, growth: 1, goldReward: 1 },
-  { id: 'normal', name: '普通', emoji: '🙂', color: '#c6ff7a', desc: '小怪更有精神、節奏更快', enemyHp: 1.5, enemySpeed: 1.1, enemyContact: 1.3, bossHp: 1.5, growth: 1.2, goldReward: 1.5 },
-  { id: 'hard', name: '困難', emoji: '😬', color: '#ffd23f', desc: '需要更好的寶物組合', enemyHp: 2.2, enemySpeed: 1.2, enemyContact: 1.6, bossHp: 2.2, growth: 1.5, goldReward: 2.2 },
-  { id: 'nightmare', name: '夢境風暴', emoji: '😱', color: '#ff8a3d', desc: '高壓快節奏，適合挑戰', enemyHp: 3.5, enemySpeed: 1.35, enemyContact: 2, bossHp: 3.5, growth: 1.8, goldReward: 3.5 },
-  { id: 'hell', name: '星光試煉', emoji: '🌟', color: '#ff5a9d', desc: '最強難度，給熟練玩家挑戰', enemyHp: 5, enemySpeed: 1.5, enemyContact: 2.6, bossHp: 5, growth: 2.2, goldReward: 5 },
+  { id: 'easy', name: '簡單', emoji: '😀', color: '#7ec850', desc: '輕鬆守堡，適合小朋友熟悉操作', enemyHp: 0.72, enemySpeed: 0.85, enemyContact: 0.6, bossHp: 0.7, growth: 0.65, goldReward: 0.45 },
+  { id: 'normal', name: '普通', emoji: '🙂', color: '#c6ff7a', desc: '標準守城節奏，有壓力但不會太急', enemyHp: 0.95, enemySpeed: 0.95, enemyContact: 0.85, bossHp: 0.9, growth: 0.85, goldReward: 0.75 },
+  { id: 'hard', name: '困難', emoji: '😬', color: '#ffd23f', desc: '需要開始搭配寶物組合', enemyHp: 1.35, enemySpeed: 1.05, enemyContact: 1.15, bossHp: 1.25, growth: 1.1, goldReward: 1.15 },
+  { id: 'nightmare', name: '夢境風暴', emoji: '😱', color: '#ff8a3d', desc: '高壓快節奏，適合熟練玩家', enemyHp: 2, enemySpeed: 1.18, enemyContact: 1.45, bossHp: 1.9, growth: 1.35, goldReward: 1.65 },
+  { id: 'hell', name: '星光試煉', emoji: '🌟', color: '#ff5a9d', desc: '最強挑戰，給已經熟悉守堡的玩家', enemyHp: 3, enemySpeed: 1.3, enemyContact: 1.9, bossHp: 3, growth: 1.7, goldReward: 2.4 },
 ];
 
 export function getDifficulty(id: string): Difficulty {

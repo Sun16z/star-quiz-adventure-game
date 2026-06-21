@@ -17,9 +17,9 @@ export const CONFIG = {
 
   castle: {
     /** 主堡血量與碰撞半徑：小怪抵達此範圍會開始攻擊主堡 */
-    maxHp: 260,
+    maxHp: 320,
     radius: 5.8,
-    contactDps: 8,
+    contactDps: 5.5,
     /** 答對升級題時主堡回血比例，並觸發短暫長大效果 */
     quizHealPercent: 0.22,
     quizPulseScale: 1.22,
@@ -42,21 +42,21 @@ export const CONFIG = {
 
   /** 生成導演：小夥伴數量與強度隨時間升壓（全動畫模型，數量上限較低） */
   director: {
-    baseCount: 10,
-    addPerStep: 4,
-    stepIntervalSec: 6,
-    maxCount: 50,
+    baseCount: 8,
+    addPerStep: 3,
+    stepIntervalSec: 7,
+    maxCount: 42,
     /** 每秒血量乘數成長（hpMul = 1 + elapsed * hpGrowthPerSec） */
-    hpGrowthPerSec: 1 / 45,
+    hpGrowthPerSec: 1 / 60,
     /** 每秒速度乘數成長 */
-    speedGrowthPerSec: 1 / 220,
+    speedGrowthPerSec: 1 / 280,
     /** 接觸傷害每秒成長 */
-    contactGrowthPerSec: 1 / 80,
+    contactGrowthPerSec: 1 / 110,
   },
 
   /** 王：定時出現的巨型敵人 */
   boss: {
-    intervalSec: 30,
+    intervalSec: 45,
     hpBase: 350,
     hpPerSpawn: 280,
     speed: 6,

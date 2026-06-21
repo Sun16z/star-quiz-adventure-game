@@ -13,15 +13,15 @@ export interface PermaUpgrade {
 }
 
 export const PERMA: PermaUpgrade[] = [
-  { id: 'might', name: '威力', emoji: '⚔️', desc: '起始傷害 +1／級', maxLevel: 5, costBase: 100, costStep: 80 },
-  { id: 'haste', name: '急速', emoji: '⚡', desc: '起始攻速 +6%／級', maxLevel: 5, costBase: 120, costStep: 90 },
-  { id: 'vigor', name: '活力', emoji: '❤️', desc: '起始生命 +20／級', maxLevel: 5, costBase: 100, costStep: 80 },
-  { id: 'swift', name: '敏捷', emoji: '👟', desc: '起始移速 +5%／級', maxLevel: 5, costBase: 100, costStep: 80 },
-  { id: 'greed', name: '貪婪', emoji: '💰', desc: '金幣獲得 +15%／級', maxLevel: 5, costBase: 150, costStep: 120 },
+  { id: 'might', name: '威力', emoji: '⚔️', desc: '起始傷害 +0.6／級', maxLevel: 12, costBase: 120, costStep: 95 },
+  { id: 'haste', name: '急速', emoji: '⚡', desc: '起始攻速 +3.5%／級', maxLevel: 12, costBase: 140, costStep: 105 },
+  { id: 'vigor', name: '活力', emoji: '❤️', desc: '起始生命 +12／級', maxLevel: 12, costBase: 120, costStep: 95 },
+  { id: 'swift', name: '敏捷', emoji: '👟', desc: '起始移速 +3%／級', maxLevel: 12, costBase: 120, costStep: 95 },
+  { id: 'greed', name: '貪婪', emoji: '💰', desc: '金幣獲得 +8%／級', maxLevel: 12, costBase: 180, costStep: 145 },
 ];
 
 export function permaCost(p: PermaUpgrade, currentLevel: number): number {
-  return p.costBase + p.costStep * currentLevel;
+  return p.costBase + p.costStep * currentLevel + Math.floor(p.costStep * 0.35 * currentLevel ** 2);
 }
 
 export interface MetaData {
@@ -67,14 +67,14 @@ export function computeStartRunState(characterId: string, perma: Record<string, 
   const vigor = perma.vigor ?? 0;
   const swift = perma.swift ?? 0;
 
-  s.damage += might;
-  s.fireInterval *= Math.pow(0.94, haste);
-  s.maxHp += 20 * vigor;
-  s.moveSpeed *= Math.pow(1.05, swift);
+  s.damage += might * 0.6;
+  s.fireInterval *= Math.pow(0.965, haste);
+  s.maxHp += 12 * vigor;
+  s.moveSpeed *= Math.pow(1.03, swift);
   return s;
 }
 
 /** 金幣加成倍率（貪婪） */
 export function goldMultiplier(perma: Record<string, number>): number {
-  return 1 + 0.15 * (perma.greed ?? 0);
+  return 1 + 0.08 * (perma.greed ?? 0);
 }
