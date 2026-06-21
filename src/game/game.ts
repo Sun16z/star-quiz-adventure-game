@@ -68,6 +68,7 @@ export interface GameStats {
   bossDefeated: number;
   bossTotal: number;
   goldEarned: number;
+  superCannonUsed: boolean;
   /** 目前背景音樂索引（隨進度自動切換，供下拉同步顯示） */
   musicTrack: number;
 }
@@ -117,6 +118,7 @@ export interface GameHandle {
   getUpgradeStatus: () => UpgradeStatusView[];
   getBossNames: () => string[];
   summonBoss: (index: number) => void;
+  triggerSuperCannon: () => boolean;
 }
 
 export interface UpgradeStatusView {
@@ -293,6 +295,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   let kills = 0;
   let time = 0;
   let goldEarned = 0;
+  let superCannonUsed = false;
   let hurtTimer = 0;
   let castleHurtTimer = 0;
   /** 受傷飄字用：兩次回饋之間累計的扣血量 */
@@ -483,6 +486,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     bossDefeated: 0,
     bossTotal: BOSS_COUNT,
     goldEarned: 0,
+    superCannonUsed: false,
     musicTrack: 0,
   };
 
@@ -507,6 +511,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     stats.bossSkill = boss.skillName;
     stats.bossDefeated = bossDefeated;
     stats.goldEarned = goldEarned;
+    stats.superCannonUsed = superCannonUsed;
     stats.musicTrack = musicTrackIdx;
     options.onStats?.(stats);
   }
@@ -877,6 +882,49 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     set: (v) => set(v > 0.5),
   });
 
+  function triggerSuperCannon(): boolean {
+    if (state !== 'running' || superCannonUsed) return false;
+    superCannonUsed = true;
+
+    const cx = castle.position.x;
+    const cz = castle.position.z;
+    const cy = safeHeight(cx, cz);
+    const radius = CONFIG.superCannon.radius;
+    const radius2 = radius * radius;
+    let defeated = 0;
+
+    for (let i = 0; i < enemies.count; i++) {
+      if (!enemies.isAlive(i)) continue;
+      const ex = enemies.getX(i);
+      const ez = enemies.getZ(i);
+      const dx = ex - cx;
+      const dz = ez - cz;
+      if (dx * dx + dz * dz > radius2) continue;
+      if (enemies.damage(i, 9999, cx, cz)) {
+        defeated += 1;
+        kills += 1;
+        gems.spawn(ex, ez);
+        enemyDeathBurst(scene, new Vector3(ex, heightAt(ex, ez) + CONFIG.enemy.y, ez));
+        bloodDecals.spawn(ex, ez, heightAt(ex, ez) + 0.03);
+      }
+    }
+
+    if (boss.active) {
+      const dx = boss.x - cx;
+      const dz = boss.z - cz;
+      if (dx * dx + dz * dz <= radius2) {
+        boss.hitTest(boss.x, boss.z, boss.radius, CONFIG.superCannon.bossDamage);
+      }
+    }
+
+    levelUpBurst(scene, new Vector3(cx, cy + 2.2, cz));
+    bossDeathBurst(scene, new Vector3(cx, cy + 1.8, cz));
+    spawnText(scene, new Vector3(cx, cy + 5.2, cz), `超級大炮！擊退 ${defeated}`, '#fde047', 5);
+    sound.bossDown();
+    pushStats();
+    return true;
+  }
+
   const debugSpec: DebugParam[] = [
     boolParam('玩家', '無敵', () => invincible, (v) => (invincible = v)),
     boolParam('玩家', 'EXP×10', () => xpDebug, (v) => (xpDebug = v)),
@@ -983,6 +1031,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       kills = 0;
       time = 0;
       goldEarned = 0;
+      superCannonUsed = false;
       hurtTimer = 0;
       castleHurtTimer = 0;
       choices = [];
@@ -1072,6 +1121,9 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       if (index < 0 || index >= BOSS_COUNT) return;
       boss.spawn(index, player.position.x, player.position.z);
       bossTimer = 0;
+    },
+    triggerSuperCannon() {
+      return triggerSuperCannon();
     },
   };
 }

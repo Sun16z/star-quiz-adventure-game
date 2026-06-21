@@ -66,6 +66,12 @@ export const CONFIG = {
     xpGems: 40,
   },
 
+  superCannon: {
+    cost: 10,
+    radius: 38,
+    bossDamage: 180,
+  },
+
   weapon: {
     /** 自動發射間隔（秒） */
     fireInterval: 0.45,

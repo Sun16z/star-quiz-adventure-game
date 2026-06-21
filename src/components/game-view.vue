@@ -7,6 +7,16 @@
     <!-- 右上控制：靜音／暫停／技能等級 -->
     <div v-show="stats.state === 'running'" class="absolute right-3 top-3 z-10 flex items-center gap-1.5 sm:right-4 sm:top-4 sm:gap-2">
       <button
+        class="flex h-9 min-w-16 items-center justify-center rounded-full px-3 text-sm font-black text-white backdrop-blur-md transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-45 sm:h-11 sm:min-w-20 sm:text-base"
+        :class="canUseSuperCannon ? 'bg-amber-500 hover:bg-amber-400' : 'bg-black/40'"
+        :disabled="!canUseSuperCannon"
+        :title="superCannonTitle"
+        aria-label="超級大炮"
+        @click="onSuperCannon"
+      >
+        💥 {{ stats.superCannonUsed ? '已用' : CONFIG.superCannon.cost }}
+      </button>
+      <button
         class="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-base text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95 sm:h-11 sm:w-11 sm:text-xl"
         title="音樂音效"
         aria-label="切換音樂音效"
@@ -166,6 +176,7 @@ import {
 } from '../game/game';
 import { sendHeartbeat } from '../game/api';
 import { QUALITIES, type QualityId } from '../game/quality';
+import { CONFIG } from '../game/config';
 import type { RunState } from '../game/upgrades';
 import type { Difficulty } from '../game/difficulty';
 import type { QuizSelection } from '../game/question-bank';
@@ -183,11 +194,13 @@ const props = defineProps<{
   princessStyle: PrincessStyle;
   startRunState?: RunState;
   goldMultiplier: number;
+  gold: number;
   difficulty?: Difficulty;
   quizSelection: QuizSelection;
 }>();
 const emit = defineEmits<{
   (e: 'gameover', result: RunResult): void;
+  (e: 'spend-gold', amount: number): void;
   (e: 'menu'): void;
 }>();
 
@@ -214,6 +227,7 @@ const stats = reactive<GameStats>({
   bossDefeated: 0,
   bossTotal: 5,
   goldEarned: 0,
+  superCannonUsed: false,
   musicTrack: 0,
 });
 
@@ -234,6 +248,14 @@ const showDebug = ref(false);
 const debugParams = ref<DebugParamView[]>([]);
 const bossNames = ref<string[]>([]);
 const summonIndex = ref(0);
+const canUseSuperCannon = computed(() =>
+  stats.state === 'running' && !stats.superCannonUsed && props.gold >= CONFIG.superCannon.cost,
+);
+const superCannonTitle = computed(() => {
+  if (stats.superCannonUsed) return '本場已使用';
+  if (props.gold < CONFIG.superCannon.cost) return `金幣不足，需要 ${CONFIG.superCannon.cost}`;
+  return `花 ${CONFIG.superCannon.cost} 金幣啟動超級大炮`;
+});
 const debugGroups = computed(() => {
   const map = new Map<string, (DebugParamView & { index: number })[]>();
   debugParams.value.forEach((p, i) => {
@@ -300,6 +322,10 @@ function onTogglePause() {
 }
 function onJump() {
   game?.jump();
+}
+function onSuperCannon() {
+  if (!canUseSuperCannon.value) return;
+  if (game?.triggerSuperCannon()) emit('spend-gold', CONFIG.superCannon.cost);
 }
 function onToggleMute() {
   muted.value = !muted.value;

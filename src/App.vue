@@ -26,9 +26,11 @@
     :princess-style="princessStyle"
     :start-run-state="startRun"
     :gold-multiplier="goldMul"
+    :gold="meta.gold"
     :difficulty="difficulty"
     :quiz-selection="quizSelection"
     @gameover="onGameOver"
+    @spend-gold="onSpendGold"
     @menu="screen = 'landing'"
   />
 </template>
@@ -137,6 +139,12 @@ function onUnlock(charId: string) {
 
 function onAddGold(amount: number) {
   meta.gold += amount;
+  saveMeta(meta);
+}
+
+function onSpendGold(amount: number) {
+  if (meta.gold < amount) return;
+  meta.gold -= amount;
   saveMeta(meta);
 }
 </script>
