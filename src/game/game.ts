@@ -51,6 +51,8 @@ export interface GameStats {
   time: number;
   hp: number;
   maxHp: number;
+  castleHp: number;
+  castleMaxHp: number;
   level: number;
   xp: number;
   xpToNext: number;
@@ -185,7 +187,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
   /** 玩家根節點（移動此節點，視覺為其子物件：GLB 或程序化公主造型） */
   const player = new TransformNode('player', scene);
-  player.position.set(0, 0, 0);
+  player.position.set(9, 0, 0);
 
   const fallbackBody = createPrincessModel(scene, options.princessStyle ?? 'star');
   fallbackBody.parent = player;
@@ -227,6 +229,11 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   enemies.setHazards(hazards);
   enemies.rangedDamage = 7 * diff.enemyContact;
   const bloodDecals = new BloodDecals(scene);
+
+  /** 防守主堡：小怪會優先衝向這裡，血量歸零即失敗。 */
+  const castle = createCastleModel(scene);
+  castle.position.set(0, heightAt(0, 0), 0);
+  let castlePulseTimer = 0;
 
   /** 減速光環視覺：藍色貼地圓盤 */
   const slowField = MeshBuilder.CreateDisc('slow-field', { radius: 1, tessellation: 48 }, scene);
@@ -281,10 +288,13 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
   let xp = 0;
   let xpToNext = xpForLevel(level);
   let hp = run.maxHp;
+  let castleMaxHp = CONFIG.castle.maxHp;
+  let castleHp = castleMaxHp;
   let kills = 0;
   let time = 0;
   let goldEarned = 0;
   let hurtTimer = 0;
+  let castleHurtTimer = 0;
   /** 受傷飄字用：兩次回饋之間累計的扣血量 */
   let dmgAccum = 0;
   let state: GameState = 'running';
@@ -458,6 +468,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     time: 0,
     hp,
     maxHp: run.maxHp,
+    castleHp,
+    castleMaxHp,
     level,
     xp: 0,
     xpToNext,
@@ -481,6 +493,8 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     stats.time = time;
     stats.hp = Math.max(0, Math.ceil(hp));
     stats.maxHp = run.maxHp;
+    stats.castleHp = Math.max(0, Math.ceil(castleHp));
+    stats.castleMaxHp = castleMaxHp;
     stats.level = level;
     stats.xp = Math.floor(xp);
     stats.xpToNext = xpToNext;
@@ -578,10 +592,18 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
     const px = player.position.x;
     const pz = player.position.z;
+    const castleX = castle.position.x;
+    const castleZ = castle.position.z;
     /** 玩家貼地（地形高度）+ 跳躍離地高度 */
     const groundY = heightAt(px, pz);
     player.position.y = groundY + jumpY;
     camera.target.set(px, groundY + 1.2, pz);
+
+    castle.position.y = heightAt(castleX, castleZ);
+    if (castlePulseTimer > 0) castlePulseTimer = Math.max(0, castlePulseTimer - dt);
+    const castlePulseT = castlePulseTimer / CONFIG.castle.quizPulseDuration;
+    const castlePulseScale = 1 + (CONFIG.castle.quizPulseScale - 1) * Math.sin(Math.max(0, castlePulseT) * Math.PI);
+    castle.scaling.set(castlePulseScale, castlePulseScale, castlePulseScale);
 
     /** 生成導演：隨時間升壓 */
     enemies.hpMul = (1 + time * CONFIG.director.hpGrowthPerSec * diff.growth) * diff.enemyHp;
@@ -592,11 +614,11 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       CONFIG.director.maxCount,
       CONFIG.director.baseCount + Math.floor(time / CONFIG.director.stepIntervalSec) * CONFIG.director.addPerStep,
     );
-    enemies.setCount(target, px, pz);
+    enemies.setCount(target, castleX, castleZ);
 
     grid.clear();
     enemies.insertAll(grid);
-    enemies.update(dt, px, pz, grid, obstacles, eff.slowRadius, eff.slowFactor);
+    enemies.update(dt, castleX, castleZ, grid, obstacles, eff.slowRadius, eff.slowFactor, px, pz);
     /** 減速光環視覺 */
     if (eff.slowRadius > 0) {
       slowField.position.set(px, groundY + 0.06, pz);
@@ -610,7 +632,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
     bossTimer += dt;
     if (!boss.active && bossCount < BOSS_COUNT && bossTimer >= CONFIG.boss.intervalSec) {
       bossTimer = 0;
-      boss.spawn(bossCount, px, pz);
+      boss.spawn(bossCount, castleX, castleZ);
       sound.bossSpawn();
       bossCount += 1;
     }
@@ -664,7 +686,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       }
     }
 
-    boss.update(dt, px, pz, obstacles, hazards);
+    boss.update(dt, castleX, castleZ, obstacles, hazards);
     /** 王招式對玩家造成的傷害（彈幕／震波／毒池，無視騰空），統一於下方結算 */
     const hazardDmg = hazards.update(dt, px, pz, groundY);
 
@@ -693,16 +715,26 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       }
     }
 
-    /** 接觸傷害（小怪 + 王） */
+    /** 接觸傷害：小怪主攻城，玩家貼身仍會受傷。 */
     let touching = false;
+    let attackingCastle = false;
+    const castleRange = CONFIG.castle.radius + CONFIG.enemy.radius;
+    const castleRange2 = castleRange * castleRange;
     grid.query(px, pz, (j) => {
       if (touching || !enemies.isAlive(j)) return;
       const dx = enemies.getX(j) - px;
       const dz = enemies.getZ(j) - pz;
       if (dx * dx + dz * dz <= contactRange2) touching = true;
     });
+    grid.query(castleX, castleZ, (j) => {
+      if (attackingCastle || !enemies.isAlive(j)) return;
+      const dx = enemies.getX(j) - castleX;
+      const dz = enemies.getZ(j) - castleZ;
+      if (dx * dx + dz * dz <= castleRange2) attackingCastle = true;
+    });
     const contactDps = CONFIG.player.contactDps * (1 + time * CONFIG.director.contactGrowthPerSec * diff.growth) * diff.enemyContact;
     const bossTouch = boss.contactsPlayer(px, pz, CONFIG.player.radius);
+    const bossHitsCastle = boss.contactsPlayer(castleX, castleZ, CONFIG.castle.radius);
 
     /** 護盾：定期生成，可擋下一次傷害 */
     if (eff.shieldInterval > 0) {
@@ -736,6 +768,13 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       dmgAccum += incoming;
     }
 
+    let castleIncoming = 0;
+    if (attackingCastle) {
+      castleIncoming += CONFIG.castle.contactDps * (1 + time * CONFIG.director.contactGrowthPerSec * diff.growth) * diff.enemyContact * dt;
+    }
+    if (bossHitsCastle) castleIncoming += boss.contactDps * 0.75 * diff.enemyContact * dt;
+    if (castleIncoming > 0) castleHp -= castleIncoming;
+
     /** 護盾視覺 */
     if (shieldReady) {
       shieldRing.position.set(px, groundY + 1.1, pz);
@@ -757,8 +796,15 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       dmgAccum = 0;
     }
 
-    if (hp <= 0) {
-      hp = 0;
+    castleHurtTimer -= dt;
+    if (castleIncoming > 0 && castleHurtTimer <= 0) {
+      castleHurtTimer = 0.45;
+      spawnText(scene, new Vector3(castleX, castle.position.y + 4.8, castleZ), `主堡 -${Math.max(1, Math.round(castleIncoming))}`, '#fb7185', 3.2);
+    }
+
+    if (hp <= 0 || castleHp <= 0) {
+      hp = Math.max(0, hp);
+      castleHp = Math.max(0, castleHp);
       goldEarned = Math.floor((kills * 0.6 + time) * goldMul);
       setGameState('dead');
       sound.playerDeath();
@@ -907,6 +953,9 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       /** 最大生命升級補滿，其餘升級回復 30% 最大生命 */
       if (upgrade.id === 'maxhp') hp = run.maxHp;
       else hp = Math.min(run.maxHp, hp + run.maxHp * 0.3);
+      const castleHeal = castleMaxHp * CONFIG.castle.quizHealPercent;
+      castleHp = Math.min(castleMaxHp, castleHp + castleHeal);
+      castlePulseTimer = CONFIG.castle.quizPulseDuration;
       spawnText(
         scene,
         new Vector3(player.position.x, safeHeight(player.position.x, player.position.z) + 1.4, player.position.z),
@@ -914,6 +963,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
         '#fde68a',
         4.2,
       );
+      spawnText(scene, new Vector3(castle.position.x, castle.position.y + 5, castle.position.z), `主堡 +${Math.round(castleHeal)}`, '#86efac', 4);
       sound.treasure();
       choices = [];
       setGameState('running');
@@ -928,10 +978,13 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       xp = 0;
       xpToNext = xpForLevel(level);
       hp = run.maxHp;
+      castleMaxHp = CONFIG.castle.maxHp;
+      castleHp = castleMaxHp;
       kills = 0;
       time = 0;
       goldEarned = 0;
       hurtTimer = 0;
+      castleHurtTimer = 0;
       choices = [];
       setGameState('running');
       vy = 0;
@@ -945,7 +998,10 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       playerMoving = false;
       playerWalk?.stop();
       playerIdle?.start(true);
-      player.position.set(0, heightAt(0, 0), 0);
+      player.position.set(9, heightAt(9, 0), 0);
+      castle.position.set(0, heightAt(0, 0), 0);
+      castle.scaling.set(1, 1, 1);
+      castlePulseTimer = 0;
       enemies.reset(0, 0);
       gems.reset();
       weapon.reset();
@@ -1026,6 +1082,79 @@ function lerpAngle(current: number, target: number, t: number): number {
   while (diff > Math.PI) diff -= Math.PI * 2;
   while (diff < -Math.PI) diff += Math.PI * 2;
   return current + diff * t;
+}
+
+/** 星願主堡：可愛、穩定載入的程序化守護塔。 */
+function createCastleModel(scene: Scene): TransformNode {
+  const root = new TransformNode('wish-castle', scene);
+
+  const wallMat = new StandardMaterial('castle-wall-mat', scene);
+  wallMat.diffuseColor = new Color3(1, 0.78, 0.9);
+  wallMat.emissiveColor = new Color3(0.2, 0.08, 0.18);
+  wallMat.specularColor = new Color3(0.2, 0.2, 0.2);
+
+  const roofMat = new StandardMaterial('castle-roof-mat', scene);
+  roofMat.diffuseColor = new Color3(0.58, 0.72, 1);
+  roofMat.emissiveColor = new Color3(0.08, 0.18, 0.36);
+  roofMat.specularColor = Color3.Black();
+
+  const starMat = new StandardMaterial('castle-star-mat', scene);
+  starMat.diffuseColor = new Color3(1, 0.92, 0.32);
+  starMat.emissiveColor = new Color3(1, 0.72, 0.08);
+  starMat.specularColor = Color3.Black();
+  starMat.disableLighting = true;
+
+  const base = MeshBuilder.CreateCylinder('castle-base', { diameter: 7.6, height: 1.4, tessellation: 36 }, scene);
+  base.parent = root;
+  base.position.y = 0.7;
+  base.material = wallMat;
+  base.isPickable = false;
+
+  const keep = MeshBuilder.CreateCylinder('castle-keep', { diameter: 4.7, height: 5.2, tessellation: 36 }, scene);
+  keep.parent = root;
+  keep.position.y = 3.3;
+  keep.material = wallMat;
+  keep.isPickable = false;
+
+  const roof = MeshBuilder.CreateCylinder('castle-roof', { diameterTop: 0.35, diameterBottom: 5.4, height: 2.8, tessellation: 36 }, scene);
+  roof.parent = root;
+  roof.position.y = 7.3;
+  roof.material = roofMat;
+  roof.isPickable = false;
+
+  for (const [x, z] of [
+    [-3.5, -3.5],
+    [3.5, -3.5],
+    [-3.5, 3.5],
+    [3.5, 3.5],
+  ] as const) {
+    const tower = MeshBuilder.CreateCylinder('castle-tower', { diameter: 1.35, height: 4.3, tessellation: 18 }, scene);
+    tower.parent = root;
+    tower.position.set(x, 2.15, z);
+    tower.material = wallMat;
+    tower.isPickable = false;
+
+    const cap = MeshBuilder.CreateCylinder('castle-tower-cap', { diameterTop: 0.15, diameterBottom: 1.8, height: 1.4, tessellation: 18 }, scene);
+    cap.parent = root;
+    cap.position.set(x, 4.95, z);
+    cap.material = roofMat;
+    cap.isPickable = false;
+  }
+
+  const star = MeshBuilder.CreateSphere('castle-star', { diameter: 1.25, segments: 16 }, scene);
+  star.parent = root;
+  star.position.y = 9.2;
+  star.scaling.set(1, 0.45, 1);
+  star.material = starMat;
+  star.isPickable = false;
+
+  const halo = MeshBuilder.CreateTorus('castle-halo', { diameter: CONFIG.castle.radius * 2, thickness: 0.08, tessellation: 72 }, scene);
+  halo.parent = root;
+  halo.position.y = 0.08;
+  halo.material = starMat;
+  halo.isPickable = false;
+
+  return root;
 }
 
 /** 寶箱：金色發光箱 */

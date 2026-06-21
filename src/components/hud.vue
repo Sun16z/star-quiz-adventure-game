@@ -16,14 +16,25 @@
         <span class="rounded-xl bg-black/40 px-2 py-1 backdrop-blur-md sm:px-3">時間 {{ timeText }}</span>
       </div>
 
-      <!-- 血量 -->
+      <!-- 公主血量 -->
       <div class="relative h-5 w-40 overflow-hidden rounded-full bg-black/40 backdrop-blur-md sm:w-56">
         <div
           class="h-full rounded-full bg-gradient-to-r from-red-500 to-rose-400 transition-[width] duration-100"
           :style="{ width: hpPercent + '%' }"
         />
         <div class="absolute inset-0 flex items-center justify-center text-xs font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9)]">
-          {{ stats.hp }} / {{ stats.maxHp }}
+          公主 {{ stats.hp }} / {{ stats.maxHp }}
+        </div>
+      </div>
+
+      <!-- 主堡血量 -->
+      <div class="relative h-5 w-44 overflow-hidden rounded-full bg-black/40 backdrop-blur-md sm:w-64">
+        <div
+          class="h-full rounded-full bg-gradient-to-r from-lime-400 via-emerald-300 to-cyan-300 transition-[width] duration-100"
+          :style="{ width: castlePercent + '%' }"
+        />
+        <div class="absolute inset-0 flex items-center justify-center text-xs font-black text-slate-950 [text-shadow:0_1px_1px_rgba(255,255,255,0.55)]">
+          主堡 {{ stats.castleHp }} / {{ stats.castleMaxHp }}
         </div>
       </div>
 
@@ -64,7 +75,7 @@
       v-if="showOpeningHint"
       class="absolute left-1/2 top-24 w-[min(88vw,28rem)] -translate-x-1/2 rounded-full bg-black/35 px-4 py-2 text-center text-xs font-black text-white/85 ring-1 ring-white/10 backdrop-blur-md sm:bottom-5 sm:top-auto sm:text-sm"
     >
-      收集星星升級，答對題目就能帶走寶物
+      守住星願主堡，收集星星答題就能回血變強
     </div>
 
     <!-- 操作提示 -->
@@ -86,6 +97,9 @@ const bossPercent = computed(() =>
 
 const hpPercent = computed(() =>
   props.stats.maxHp > 0 ? (props.stats.hp / props.stats.maxHp) * 100 : 0,
+);
+const castlePercent = computed(() =>
+  props.stats.castleMaxHp > 0 ? (props.stats.castleHp / props.stats.castleMaxHp) * 100 : 0,
 );
 const xpPercent = computed(() =>
   props.stats.xpToNext > 0 ? Math.min(100, (props.stats.xp / props.stats.xpToNext) * 100) : 0,

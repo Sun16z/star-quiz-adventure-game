@@ -199,6 +199,8 @@ const stats = reactive<GameStats>({
   time: 0,
   hp: 0,
   maxHp: 0,
+  castleHp: 0,
+  castleMaxHp: 0,
   level: 1,
   xp: 0,
   xpToNext: 1,

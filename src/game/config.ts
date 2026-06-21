@@ -15,6 +15,17 @@ export const CONFIG = {
     jump: { strength: 9, gravity: 26, dodgeHeight: 0.7 },
   },
 
+  castle: {
+    /** 主堡血量與碰撞半徑：小怪抵達此範圍會開始攻擊主堡 */
+    maxHp: 260,
+    radius: 5.8,
+    contactDps: 8,
+    /** 答對升級題時主堡回血比例，並觸發短暫長大效果 */
+    quizHealPercent: 0.22,
+    quizPulseScale: 1.22,
+    quizPulseDuration: 1.4,
+  },
+
   enemy: {
     /** 上限容量（thin instance 緩衝大小） */
     capacity: 3000,

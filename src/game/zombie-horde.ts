@@ -80,6 +80,8 @@ export class ZombieHorde {
   /** 遠程開火計時 */
   private fireTimer: Float32Array;
   private capacity = ZOMBIE_TYPES.length * PER_TYPE;
+  private spawnCenterX = 0;
+  private spawnCenterZ = 0;
   /** 遠程怪彈丸傷害（依難度調整） */
   rangedDamage = 7;
   private hazards?: BossHazards;
@@ -181,6 +183,8 @@ export class ZombieHorde {
 
   setCount(next: number, playerX: number, playerZ: number) {
     if (!this.ready) return;
+    this.spawnCenterX = playerX;
+    this.spawnCenterZ = playerZ;
     const clamped = Math.max(0, Math.min(this.capacity, Math.floor(next)));
     for (let i = this.count; i < clamped; i++) this.spawn(i, playerX, playerZ);
     for (let i = clamped; i < this.count; i++) {
@@ -224,13 +228,13 @@ export class ZombieHorde {
     if (i < this.count) this.freezeTimer[i] = Math.max(this.freezeTimer[i], dur);
   }
 
-  damage(i: number, amount: number, playerX: number, playerZ: number): boolean {
+  damage(i: number, amount: number, _playerX: number, _playerZ: number): boolean {
     if (i >= this.count) return false;
     this.hp[i] -= amount;
     /** 被扣血即觸發受擊白光 */
     this.hitFlash[i] = FLASH_DUR;
     if (this.hp[i] <= 0) {
-      this.spawn(i, playerX, playerZ);
+      this.spawn(i, this.spawnCenterX, this.spawnCenterZ);
       return true;
     }
     return false;
@@ -238,14 +242,18 @@ export class ZombieHorde {
 
   update(
     dt: number,
-    playerX: number,
-    playerZ: number,
+    targetX: number,
+    targetZ: number,
     grid: SpatialGrid,
     obstacles: Obstacle[],
     slowRadius = 0,
     slowFactor = 1,
+    slowCenterX = targetX,
+    slowCenterZ = targetZ,
   ) {
     if (!this.ready) return;
+    this.spawnCenterX = targetX;
+    this.spawnCenterZ = targetZ;
     const { separationRadius, separationForce, radius } = CONFIG.enemy;
     const sepR2 = separationRadius * separationRadius;
     const half = CONFIG.arenaHalf;
@@ -256,8 +264,8 @@ export class ZombieHorde {
       const x = this.posX[i];
       const z = this.posZ[i];
 
-      let dirX = playerX - x;
-      let dirZ = playerZ - z;
+      let dirX = targetX - x;
+      let dirZ = targetZ - z;
       const dlen = Math.hypot(dirX, dirZ) || 1;
       dirX /= dlen;
       dirZ /= dlen;
@@ -283,8 +291,8 @@ export class ZombieHorde {
         this.freezeTimer[i] -= dt;
         spd = 0;
       } else if (slowR2 > 0) {
-        const ddx = playerX - x;
-        const ddz = playerZ - z;
+        const ddx = slowCenterX - x;
+        const ddz = slowCenterZ - z;
         if (ddx * ddx + ddz * ddz < slowR2) spd *= slowFactor;
       }
 
@@ -298,7 +306,7 @@ export class ZombieHorde {
         }
         this.fireTimer[i] -= dt;
         if (dlen <= FIRE_RANGE && this.fireTimer[i] <= 0 && this.hazards) {
-          this.hazards.enemyShot(x, z, playerX, playerZ, this.rangedDamage);
+          this.hazards.enemyShot(x, z, targetX, targetZ, this.rangedDamage);
           this.fireTimer[i] = FIRE_INTERVAL;
         }
       }
@@ -324,7 +332,7 @@ export class ZombieHorde {
       root.position.x = nx;
       root.position.z = nz;
       root.position.y = this.heightAt(nx, nz);
-      /** 面向玩家（模型前方 +Z） */
+      /** 面向攻擊目標（模型前方 +Z） */
       root.rotation.y = Math.atan2(dirX, dirZ);
 
       /** 受擊白光回饋：整隻小怪閃白（per-mesh overlay，不影響其他小怪） */
