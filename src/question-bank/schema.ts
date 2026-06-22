@@ -13,7 +13,7 @@ export type QuestionGrade =
   | 'grade6b';
 
 export type QuestionSemester = 'a' | 'b';
-export type QuestionSubject = '國語' | '英語' | '數學';
+export type QuestionSubject = '國語' | '英語' | '數學' | '自然';
 export type QuizSubject = '綜合' | QuestionSubject;
 export type QuestionExam = 'midterm' | 'final';
 export type QuestionPublisher = '康軒' | '翰林' | '南一';

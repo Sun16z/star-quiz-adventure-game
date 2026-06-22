@@ -28,7 +28,7 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-export const CORE_QUESTION_SUBJECTS: readonly QuestionSubject[] = ['國語', '英語', '數學'];
+export const CORE_QUESTION_SUBJECTS: readonly QuestionSubject[] = ['國語', '英語', '數學', '自然'];
 
 export const QUESTION_PUBLISHERS: Array<{ id: QuestionPublisher; label: string; desc: string; icon: string }> = [
   { id: '康軒', label: '康軒', desc: '康軒版題庫', icon: '🟢' },
@@ -37,10 +37,11 @@ export const QUESTION_PUBLISHERS: Array<{ id: QuestionPublisher; label: string; 
 ];
 
 export const QUESTION_SUBJECTS: Array<{ id: QuizSubject; label: string; desc: string; icon: string }> = [
-  { id: '綜合', label: '綜合版', desc: '國語、英語、數學混合出題', icon: '🌈' },
+  { id: '綜合', label: '綜合版', desc: '國語、英語、數學、自然混合出題', icon: '🌈' },
   { id: '國語', label: '國語', desc: '字詞、句型、閱讀、寫作', icon: '📖' },
   { id: '英語', label: '英語', desc: '單字、句型、閱讀理解', icon: '🔤' },
   { id: '數學', label: '數學', desc: '計算、圖形、應用題', icon: '➗' },
+  { id: '自然', label: '自然', desc: '生物、物質、力與能源、地球科學', icon: '🔬' },
 ];
 
 export const QUESTION_EXAMS: Array<{ id: QuestionExam; label: string; desc: string; icon: string }> = [
@@ -52,8 +53,8 @@ export const QUESTION_GRADES: QuestionGradeInfo[] = ELEMENTARY_PUBLISHERS_DATASE
   id: grade.id,
   shortLabel: `${toChineseNumber(grade.grade)}${grade.semester === 'a' ? '上' : '下'}`,
   label: `${toChineseNumber(grade.grade)}年級${grade.semester === 'a' ? '上學期' : '下學期'}`,
-  desc: '國語、英語、數學｜期中/期末',
-  subjects: ['國語', '英語', '數學'],
+  desc: '國語、英語、數學、自然｜期中/期末',
+  subjects: ['國語', '英語', '數學', '自然'],
 }));
 
 export const DEFAULT_QUESTION_PUBLISHER: QuestionPublisher = '康軒';

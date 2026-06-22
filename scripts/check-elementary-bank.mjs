@@ -8,7 +8,7 @@ const expectedGrades = [
   'grade5a', 'grade5b',
   'grade6a', 'grade6b',
 ];
-const expectedSubjects = ['國語', '英語', '數學'];
+const expectedSubjects = ['國語', '英語', '數學', '自然'];
 const expectedExams = ['midterm', 'final'];
 const expectedPublishers = ['康軒', '翰林', '南一'];
 const expectedPerCombo = 30;
